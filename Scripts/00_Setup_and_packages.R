@@ -1,6 +1,6 @@
 ## Install and load packages
 
-packages <- c('tidyverse', 'readxl', 'rvest', 'here')
+packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate')
 
 installed_packages <- packages %in% row.names(installed.packages())
 

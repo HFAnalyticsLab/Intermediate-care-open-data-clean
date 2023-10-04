@@ -1,14 +1,24 @@
-########################################
+################################################################################
+################################################################################
+# Script written in R 4.0.2
 
 #  1. ACUTE SITREP DATA ANALYSIS
 
-# In this script, we scrape the NHSE webpage for Delayed Discharge SitRep data and install any available datasets which
+# In this script, we download any new Acute SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics. 
+
+# In the scraping portion, we scrape the NHSE webpage for Delayed Discharge SitRep data and install any available datasets which
 # we do not currently have in our working directory. This will act to both download all available data on a first run, 
-# and download 
+# and download only any new editions of the dataset on subsequent runs. The singular time series dataset is updated with each run. 
 
-# There are two tables we are interested in in the SitRep data: Table 4, detailing ___, and Table 5, showing ___. 
+# There are two tables we are interested in in the SitRep data: Table 4, detailing discharges by pathway, and Table 5, showing 
+# discharge delays by reason. These tables are both formatted in a slightly difficult way for reading and analyzing in R - 
+# both have irregular shapes, numerous empty cells for formatting, and have multiple tables (showing the same metrics at regional, ICB and trust level)
+# on the same sheet. The wrangling portion of this script reads in each monthly sheet for Tables 4 and 5 and fixes their formatting 
+# into an amenable shape for R. It then pivots and combines all monthly sheets into more easily filterable dataframes featuring 
+# all metrics in long format, divided into ICB and trust level. 
 
-
+################################################################################
+################################################################################
 
 
 # Check if project setup has been run, and run it if not
@@ -88,6 +98,9 @@ if(nrow(links_to_download) >= 1){
 
 download.file(url = time_series_link, destfile = 'Raw_data/Acute_SitRep_data/latest_time_series.xlsx')  # Download latest version of time series data
 
+rm(checklist_files, checklist_web, data_nodes, files_comparison_df, links_to_download, monthly_names)  # Clear up workspace
+
+
 
 #################################################
 ######## LOAD UP FULL SERIES OF DATA ############
@@ -110,11 +123,11 @@ import_sheets_function <- function(file_name, table, level){
   
   if (table == 'Table 4'){
     raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15)
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-')
     
   } else if (table == 'Table 5') {
     raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 4, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 14)
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
     
   } else {print('Error')}
   
@@ -144,3 +157,95 @@ table4_trust <- lapply(1:length(import_list), function(i){import_sheets_function
 table5_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'ICB')})
 
 table5_trust <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'Trust')})
+
+all_tables_list <- list(table4_ICB = table4_ICB, table4_trust = table4_trust, table5_ICB = table5_ICB, table5_trust = table5_trust)
+
+for (i in 1:length(all_tables_list)){
+  names(all_tables_list[[i]]) <- months   # Apply uniform month labels to all tables
+}
+
+# Pivot and label dataframes within lists, then combine all months into single df for each table/level combo
+
+all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
+  
+  lapply(1:length(months), function(x){
+  df<- all_tables_list[[i]][[x]] %>%
+    mutate(period = months[[x]]) %>%
+    pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
+                 values_ptypes = list(value=double()))
+  }) 
+})
+
+all_months_combined <- lapply(1:length(all_tables_pivoted), function(i){
+  
+  df <- do.call(rbind, all_tables_pivoted[[i]]) %>%
+    mutate(date = lubridate::my(period))
+  })
+
+# Create individual dataframes for each table/level combo, including variable for separating out pathways
+
+ICB_discharges_by_destination <- all_months_combined[[1]] %>%
+  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
+                             grepl('P1', metric) == TRUE ~ 'P1',
+                             grepl('P2', metric) == TRUE ~ 'P2',
+                             grepl('P3', metric) == TRUE ~ 'P3',
+                             TRUE ~ 'Other'))
+
+trust_discharges_by_destination <- all_months_combined[[2]] %>%
+  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
+                             grepl('P1', metric) == TRUE ~ 'P1',
+                             grepl('P2', metric) == TRUE ~ 'P2',
+                             grepl('P3', metric) == TRUE ~ 'P3',
+                             TRUE ~ 'Other'))
+
+ICB_delayed_discharges_by_reason <- all_months_combined[[3]]
+
+trust_delayed_discharges_by_reason <- all_months_combined[[4]]
+
+rm(table4_ICB, table4_trust, table5_ICB, table5_trust, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
+
+
+## Load in time series
+
+daily_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
+
+weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
+
+
+#################################################
+################### ANALYSIS ####################
+#################################################
+
+ICB_discharges_by_destination %>%
+  filter(pathway == 'P1') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value)) +
+  geom_line() +
+  theme_minimal()
+
+
+
+################################################
+############# VISUALISATIONS ###################
+################################################
+
+
+ggplot(daily_timeseries, aes(x = Date, y = `P1 - Domestic home with reablement support`)) +
+  geom_line() +
+  theme_minimal()
+
+ggplot(weekly_timeseries, aes(x = `Week commencing`, y = `Pathway 1: awaiting availability of resource for assessment and start of care at home`)) +
+  geom_line() +
+  theme_minimal()
+
+ICB_discharges_by_destination %>%
+  filter(pathway == 'P1') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value)) +
+  geom_line() +
+  theme_minimal()
+
+
+
