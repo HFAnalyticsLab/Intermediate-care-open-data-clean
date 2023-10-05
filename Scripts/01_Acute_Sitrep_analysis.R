@@ -4,7 +4,8 @@
 
 #  1. ACUTE SITREP DATA ANALYSIS
 
-# In this script, we download any new Acute SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics. 
+# In this script, we download any new Acute SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
+# To run this script, you only need to have run 00_Setup_and_packages.R prior
 
 # In the scraping portion, we scrape the NHSE webpage for Delayed Discharge SitRep data and install any available datasets which
 # we do not currently have in our working directory. This will act to both download all available data on a first run, 
@@ -100,8 +101,6 @@ download.file(url = time_series_link, destfile = 'Raw_data/Acute_SitRep_data/lat
 
 rm(checklist_files, checklist_web, data_nodes, files_comparison_df, links_to_download, monthly_names)  # Clear up workspace
 
-
-
 #################################################
 ######## LOAD UP FULL SERIES OF DATA ############
 #################################################
@@ -160,8 +159,13 @@ table5_trust <- lapply(1:length(import_list), function(i){import_sheets_function
 
 all_tables_list <- list(table4_ICB = table4_ICB, table4_trust = table4_trust, table5_ICB = table5_ICB, table5_trust = table5_trust)
 
+
+# Apply uniform month labels to all tables
+
+month_labels <- sub('.xlsx', '', import_list)
+
 for (i in 1:length(all_tables_list)){
-  names(all_tables_list[[i]]) <- months   # Apply uniform month labels to all tables
+  names(all_tables_list[[i]]) <- month_labels   
 }
 
 # Pivot and label dataframes within lists, then combine all months into single df for each table/level combo
@@ -170,7 +174,7 @@ all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
   
   lapply(1:length(months), function(x){
   df<- all_tables_list[[i]][[x]] %>%
-    mutate(period = months[[x]]) %>%
+    mutate(period = month_labels[[x]]) %>%
     pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
                  values_ptypes = list(value=double()))
   }) 
@@ -223,7 +227,6 @@ ICB_discharges_by_destination %>%
   ggplot(., aes(x = date, y = value)) +
   geom_line() +
   theme_minimal()
-
 
 
 ################################################
