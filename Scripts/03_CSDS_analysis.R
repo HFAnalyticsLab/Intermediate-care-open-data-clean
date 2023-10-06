@@ -7,13 +7,16 @@
 ################################################################################
 ################################################################################
 
+rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if (setup_run == 'RUN') {   
+if ('rvest' %in% .packages()) { 
+  print('Project setup run')   
 }else{
-  source('00_Setup_and_packages.R')}
+  source('00_Setup_and_packages.R')
+  print('Project setup run')
+  }
 
-rm(list=ls()) # Clear up workspace
 
 ################################################
 ######## SCRAPE AND DOWNLOAD LATEST DATA #######
@@ -167,17 +170,22 @@ all_csds_csv_byprovider <- lapply(1:length(current_files), function(i){
   
   names(csv) <- sub(' ', '_', names(csv))
   
-  
-  #csv <- csv %>%
-   # filter(org_level == 'Provider')
+  if('Provider' %in% levels(as.factor(csv$org_level))){
+    csv <- csv %>%
+      filter(org_level %in% c('Provider','All Submitters'))
+  } else {
+    csv <- csv %>%
+      filter(org_level %in% c('Trust','AT'))
+  }
   
   return(csv)
        })
 
-levels(as.factor(all_csds_csv_byprovider[[1]]$org_level))
+names(all_csds_csv_byprovider) <- lapply(1:length(current_files), function(i){sub('.csv', '', current_files[[i]])})
 
 all_csds_csv_ICB <- lapply(1:length(current_files), function(i){
   read_csv(paste0('Raw_data/CSDS_data/', current_files[[i]]))
+  
 })
 
 

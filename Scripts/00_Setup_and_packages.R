@@ -27,5 +27,3 @@ lapply(data_subfolders, function(i){
   ifelse(!dir.exists(file.path(here('Raw_data/', i))), dir.create(file.path(here('Raw_data/', i))), print('Directory already exists'))
 })
 
-setup_run <- 'RUN'
-

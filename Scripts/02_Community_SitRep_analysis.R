@@ -2,21 +2,8 @@
 ################################################################################
 # Script written in R 4.0.2
 
-#  1. ACUTE SITREP DATA ANALYSIS
+#  2. COMMUNITY SITREP DATA ANALYSIS
 
-# In this script, we download any new Acute SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
-# To run this script, you only need to have run 00_Setup_and_packages.R prior
-
-# In the scraping portion, we scrape the NHSE webpage for Delayed Discharge SitRep data and install any available datasets which
-# we do not currently have in our working directory. This will act to both download all available data on a first run, 
-# and download only any new editions of the dataset on subsequent runs. The singular time series dataset is updated with each run. 
-
-# There are two tables we are interested in in the SitRep data: Table 4, detailing discharges by pathway, and Table 5, showing 
-# discharge delays by reason. These tables are both formatted in a slightly difficult way for reading and analyzing in R - 
-# both have irregular shapes, numerous empty cells for formatting, and have multiple tables (showing the same metrics at regional, ICB and trust level)
-# on the same sheet. The wrangling portion of this script reads in each monthly sheet for Tables 4 and 5 and fixes their formatting 
-# into an amenable shape for R. It then pivots and combines all monthly sheets into more easily filterable dataframes featuring 
-# all metrics in long format, divided into ICB and trust level. 
 
 ################################################################################
 ################################################################################
@@ -34,24 +21,22 @@ if ('rvest' %in% .packages()) {
 ################################################
 
 ## Identify which SitRep files are currently in our directory
-current_files <- list.files(here('Raw_data/Acute_SitRep_data'), pattern='xlsx')  
+current_files <- list.files(here('Raw_data/Community_SitRep_data'), pattern='xlsx')  
 
 
 ## Scrape the NHS webpage to identify which months are currently available
 
-acute_sitrep_link <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/'  # Link to NHS webpage
+community_sitrep_link <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-community-data/'  # Link to NHS webpage
 
-monthly_names <- read_html(acute_sitrep_link) %>%    # Identify which months of data are listed on the web page
+monthly_names <- read_html(community_sitrep_link) %>%    # Identify which months of data are listed on the web page
   html_elements('p') %>%
   html_text() %>%
   tolower() %>%
   as.data.frame() %>%
   rename(months = '.') %>%
-  filter((grepl('daily-discharge', months)) == TRUE)
+  filter((grepl('community-discharge', months)) == TRUE)
 
-months <- sub(" ", "", word(monthly_names$months, 1, sep = "\\:")) # Create a list of months available on the webpage in the same format as the data download links
-  
-data_nodes <- read_html(acute_sitrep_link) %>%  # Extract links to all the datasets available on the webpage
+data_nodes <- read_html(community_sitrep_link) %>%  # Extract links to all the datasets available on the webpage
   html_elements('a') %>%
   html_attr('href') %>%
   as.data.frame() %>%
@@ -59,6 +44,11 @@ data_nodes <- read_html(acute_sitrep_link) %>%  # Extract links to all the datas
   filter(grepl('.xlsx', links) == TRUE)
 
 time_series_link <- data_nodes$links[grep('timeseries', data_nodes$links)] # Find time series in the list of data nodes
+
+months_links_df <- cbind(monthly_names, data_nodes) %>%
+  filter(grepl('timeseries', links)==FALSE)
+
+months <- sub(" ", "", word(months_links_df$months, 1, sep = "\\:")) # Create a list of months available on the webpage in the same format as the data download links
 
 
 ## Compare the list of available data to the data we already have in our directory
@@ -74,7 +64,7 @@ month_present_on_web <- sapply(1:length(checklist_web), function(i){   # Create 
 })
 
 checklist_files <- lapply(1:length(months), function(i){                      # Check for monthly files in our raw data directory
-  file.exists(paste0('Raw_data/Acute_SitRep_data/', months[[i]], '.xlsx'))
+  file.exists(paste0('Raw_data/Community_SitRep_data/', months[[i]], '.xlsx'))
 })
 
 month_present_in_files <- sapply(1:length(checklist_files), function(i){      # Create vector describing whether a month is in our data directory
@@ -93,12 +83,12 @@ links_to_download <- files_comparison_df %>%
 if(nrow(links_to_download) >= 1){
   for (i in 1:nrow(links_to_download)){      # Download all links which we do not currently have in our directory
     
-    download.file(url = links_to_download$links[[i]], destfile = paste0('Raw_data/Acute_SitRep_data/', links_to_download$months[[i]], '.xlsx'))
+    download.file(url = links_to_download$links[[i]], destfile = paste0('Raw_data/Community_SitRep_data/', links_to_download$months[[i]], '.xlsx'))
   }
 }
 
 
-download.file(url = time_series_link, destfile = 'Raw_data/Acute_SitRep_data/latest_time_series.xlsx')  # Download latest version of time series data
+download.file(url = time_series_link, destfile = 'Raw_data/Community_SitRep_data/latest_time_series.xlsx')  # Download latest version of time series data
 
 rm(checklist_files, checklist_web, data_nodes, files_comparison_df, links_to_download, monthly_names)  # Clear up workspace
 
@@ -107,7 +97,7 @@ rm(checklist_files, checklist_web, data_nodes, files_comparison_df, links_to_dow
 #################################################
 
 # Create new list of files in our directory now that we've scraped for new data. RECOMMENDED TO CHECK AND MAKE SURE NO MONTHS ARE REPEATED
-refreshed_current_files <- list.files(here('Raw_data/Acute_SitRep_data'), pattern='xlsx')  
+refreshed_current_files <- list.files(here('Raw_data/Community_SitRep_data'), pattern='xlsx')  
 
 print(refreshed_current_files)
 
@@ -119,15 +109,20 @@ import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_
 # Table 5: Weekly snapshot average of dischargeable people per day (LoS >14 days) not discharged, by reason
 # We need to separate data into ICB and trust-level, which awkwardly are published on the same sheets of the Excel files
 
+
+###############################################################################################################################################
+####################################################### BELOW TO BE REDONE ####################################################################
+###############################################################################################################################################
+
 import_sheets_function <- function(file_name, table, level){
   
   if (table == 'Table 4'){
-    raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-')
+    raw_colnames <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 4, n_max = 0)
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
     
   } else if (table == 'Table 5') {
-    raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 4, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
+    raw_colnames <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 3, n_max = 0)
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 13, na = '-')
     
   } else {print('Error')}
   
@@ -174,10 +169,10 @@ for (i in 1:length(all_tables_list)){
 all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
   
   lapply(1:length(months), function(x){
-  df<- all_tables_list[[i]][[x]] %>%
-    mutate(period = month_labels[[x]]) %>%
-    pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
-                 values_ptypes = list(value=double()))
+    df<- all_tables_list[[i]][[x]] %>%
+      mutate(period = month_labels[[x]]) %>%
+      pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
+                   values_ptypes = list(value=double()))
   }) 
 })
 
@@ -185,7 +180,7 @@ all_months_combined <- lapply(1:length(all_tables_pivoted), function(i){
   
   df <- do.call(rbind, all_tables_pivoted[[i]]) %>%
     mutate(date = lubridate::my(period))
-  })
+})
 
 # Create individual dataframes for each table/level combo, including variable for separating out pathways
 
@@ -212,9 +207,9 @@ rm(table4_ICB, table4_trust, table5_ICB, table5_trust, all_tables_list, all_tabl
 
 ## Load in time series
 
-daily_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
+daily_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
 
-weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
+weekly_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
 
 
 #################################################
@@ -250,6 +245,3 @@ ICB_discharges_by_destination %>%
   ggplot(., aes(x = date, y = value)) +
   geom_line() +
   theme_minimal()
-
-
-
