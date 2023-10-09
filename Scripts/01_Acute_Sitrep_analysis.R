@@ -4,7 +4,7 @@
 
 #  1. ACUTE SITREP DATA ANALYSIS
 
-# In this script, we download any new Acute SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
+# In this script, we download any new editions of the discharges from acute hospitals SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
 # To run this script, you only need to have run 00_Setup_and_packages.R prior
 
 # In the scraping portion, we scrape the NHSE webpage for Delayed Discharge SitRep data and install any available datasets which
@@ -17,6 +17,9 @@
 # on the same sheet. The wrangling portion of this script reads in each monthly sheet for Tables 4 and 5 and fixes their formatting 
 # into an amenable shape for R. It then pivots and combines all monthly sheets into more easily filterable dataframes featuring 
 # all metrics in long format, divided into ICB and trust level. 
+
+# As it currently stands, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
+# attentive to potential formatting differences which may complicate the wrangling stages.
 
 ################################################################################
 ################################################################################

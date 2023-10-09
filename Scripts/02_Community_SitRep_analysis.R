@@ -4,6 +4,14 @@
 
 #  2. COMMUNITY SITREP DATA ANALYSIS
 
+# In this script, we download any new editions of the discharges from community hospitals SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
+# To run this script, you only need to have run 00_Setup_and_packages.R prior
+
+# Much of this script functions in the same way as the preceding 01_Acute_Sitrep_analysis.R script, with minor variations to account for formatiing differences. 
+# As it currently stand, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
+# attentive to potential formatting differences which may complicate the wrangling stages.
+
+# WARNING: dates are currently loading in in a strange format from the weekly timseries, will need fixing
 
 ################################################################################
 ################################################################################
@@ -109,24 +117,52 @@ import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_
 # Table 5: Weekly snapshot average of dischargeable people per day (LoS >14 days) not discharged, by reason
 # We need to separate data into ICB and trust-level, which awkwardly are published on the same sheets of the Excel files
 
+# The structure very slightly changed for the community sitrep files in August 2023, hence the additional if else statements in the import function
+# Whether this change will continue must be checked for future vintages of the data
 
-###############################################################################################################################################
-####################################################### BELOW TO BE REDONE ####################################################################
-###############################################################################################################################################
 
 import_sheets_function <- function(file_name, table, level){
   
-  if (table == 'Table 4'){
-    raw_colnames <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 4, n_max = 0)
+  if (table == 'Table 4' & file_name %in% c('june2023.xlsx', 'july2023.xlsx')){
+    raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home, new reablement support', 'P1 - Other, new reablement support',
+                      'P1 - Hospice at Home, new care or support need', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)', 'P2 - Care Home (24hr support)', 'P2 - Other non-home (24hr support)',
+                      'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)')
+    
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
     
-  } else if (table == 'Table 5') {
-    raw_colnames <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 3, n_max = 0)
+  } else if (table == 'Table 5' & file_name %in% c('june2023.xlsx', 'july2023.xlsx')) {
+    
+    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
+                      'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
+                      'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
+                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
+                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
+                      'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Safeguarding concern preventing discharge or Court of Protection')
+    
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 13, na = '-')
     
-  } else {print('Error')}
+  } else if (table == 'Table 4' & !(file_name %in% c('june2023.xlsx', 'july2023.xlsx'))) {
+    
+    raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home, new reablement support', 'P1 - Other, new reablement support',
+                      'P1 - Hospice at Home, new care or support need', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)', 'P2 - Care Home (24hr support)', 'P2 - Other non-home (24hr support)',
+                      'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)')
+    
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 15, na = '-')
+    
+  } else if (table == 'Table 5' & !(file_name %in% c('june2023.xlsx', 'july2023.xlsx'))){
+    
+    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
+                      'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
+                      'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
+                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
+                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
+                      'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Safeguarding concern preventing discharge or Court of Protection')
+    
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
+    
+  }else {print('Error')}
   
-  table_colnames <- c('Region', 'Org_code', 'Org_name', names(raw_colnames))
+  table_colnames <- c('Region', 'Org_code', 'Org_name', raw_colnames)
   
   names(discharges_all) <- table_colnames
   
@@ -143,7 +179,7 @@ import_sheets_function <- function(file_name, table, level){
 }
 
 
-# Import all available months for both relevant tables at ICB and trust level
+# Import first months for both relevant tables at ICB and trust level
 
 table4_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'ICB')})
 
@@ -211,6 +247,8 @@ daily_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_serie
 
 weekly_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
 
+# WARNING: dates are funny in the weekly timeseries, needs fixing
+as_date(weekly_timeseries$`Date (week commencing)`)
 
 #################################################
 ################### ANALYSIS ####################
@@ -229,17 +267,13 @@ ICB_discharges_by_destination %>%
 ############# VISUALISATIONS ###################
 ################################################
 
-
-ggplot(daily_timeseries, aes(x = Date, y = `P1 - Domestic home with reablement support`)) +
-  geom_line() +
-  theme_minimal()
-
-ggplot(weekly_timeseries, aes(x = `Week commencing`, y = `Pathway 1: awaiting availability of resource for assessment and start of care at home`)) +
+ggplot(daily_timeseries, aes(x = Date, y = `P1 - Domestic home, new reablement support`)) +
   geom_line() +
   theme_minimal()
 
 ICB_discharges_by_destination %>%
   filter(pathway == 'P1') %>%
+  replace_na(list(value = 0)) %>%
   group_by(period, date) %>%
   summarise(value = sum(value)) %>%
   ggplot(., aes(x = date, y = value)) +

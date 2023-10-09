@@ -4,6 +4,14 @@
 
 #  3. COMMUNITY SERVICES DATASET DATA ANALYSIS
 
+# In this script, we download any new editions of the community services dataset (CSDS) from NHS England, process the data into an analyzable format, and create time series of key metrics.
+# To run this script, you only need to have run 00_Setup_and_packages.R prior
+
+# In the scraping portion, we scrape the NHSE webpage forcommunity services data and install any available datasets which
+# we do not currently have in our working directory. This will act to both download all available data on a first run, 
+# and download only any new editions of the dataset on subsequent runs. The singular time series dataset is updated with each run. 
+
+
 ################################################################################
 ################################################################################
 
