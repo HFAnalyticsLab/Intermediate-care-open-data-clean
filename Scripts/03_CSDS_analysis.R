@@ -7,11 +7,17 @@
 # In this script, we download any new editions of the community services dataset (CSDS) from NHS England, process the data into an analyzable format, and create time series of key metrics.
 # To run this script, you only need to have run 00_Setup_and_packages.R prior
 
-# In the scraping portion, we scrape the NHSE webpage forcommunity services data and install any available datasets which
+# In the scraping portion, we scrape the NHSE webpage for community services data and install any available datasets which
 # we do not currently have in our working directory. This will act to both download all available data on a first run, 
 # and download only any new editions of the dataset on subsequent runs. The singular time series dataset is updated with each run. 
 
+# NOTE: I don't think there's anything we can get out of the editions of the dataset from before august 2020. If we're confident in this 
+# conclusion, will alter the scraper to only download editions of the data from beyond that point.
 
+# NOTE: We seem to see a transition from submitters recording IC in the Intermediate care service measure to the specific categories over time, creating a false appearance of 
+# decline in that measure and growth in the others. Maybe we need to sum these? Truncate the time series?
+
+# Note: need to add some workspace clearouts here where appropriate due to large numbers of files
 ################################################################################
 ################################################################################
 
@@ -57,7 +63,7 @@ months_links_df <- cbind(monthly_names, monthly_links) %>%              # Create
   filter(grepl('     ', labels) == FALSE) %>%                           # the end of each link. Use these to create date format versions of each of these labels (used to separate
   mutate(names_only = sub('https://digital.nhs.uk/data-and-information/publications/statistical/community-services-statistics-for-children-young-people-and-adults/', 
                           '', links)) %>%                               # the scraping and downloading below into pre and post Jan 2020 timeframes, as formatting changed then)  
-  mutate(dates_as_dates = lubridate::my(names_only)) 
+  mutate(dates_as_dates = lubridate::my(names_only))                    # Labels with a large black space are omitted - these are from the "Upcoming publications" section and so are of no interest to us
 
 
 
@@ -192,6 +198,9 @@ names(all_csds_csv_byprovider) <- lapply(1:length(current_files), function(i){su
 
 view(all_csds_csv_byprovider[['july-2020']])
 
+
+# I don't think we can find anything useable in the pre-august 2020 editions of the dataset
+
 csds_provider_currentformat <- all_csds_csv_byprovider[c('august-2020', 'september-2020', 'october-2020', 'november-2020', 'december-2020', 'january-2021', 'february-2021',
                                                   'march-2021', 'april-2021', 'may-2021', 'june-2021', 'july-2021', 'august-2021', 'september-2021', 'october-2021', 'november-2021', 'december-2021',
                                                   'january-2022', 'february-2022', 'march-2022', 'april-2022', 'may-2022', 'june-2022', 'july-2022', 'august-2022', 'september-2022', 'october-2022', 
@@ -211,4 +220,18 @@ csds_provider_IConly <- lapply(1:length(csds_provider_currentformat), function(i
 
 
 csds_IC_all <- do.call('rbind', csds_provider_IConly)
+
+
+#####################################################
+################ ANALYZE DATA #######################
+#####################################################
+
+# NOTE: We seem to see a transition from submitters recording IC in the Intermediate care service measure to the specific categories over time, creating a false appearance of 
+# decline in that measure and growth in the others. Maybe we need to sum these? Truncate the time series?
+
+csds_IC_all %>%
+  filter(measure == 18 & org_level == 'All Submitters') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = measure_value)) +
+  geom_line() +
+  theme_minimal()
 

@@ -11,7 +11,7 @@
 # As it currently stand, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
 # attentive to potential formatting differences which may complicate the wrangling stages.
 
-# WARNING: dates are currently loading in in a strange format from the weekly timseries, will need fixing
+# WARNING: dates are currently loading in in a strange format from the weekly timeseries, will need fixing
 
 ################################################################################
 ################################################################################
