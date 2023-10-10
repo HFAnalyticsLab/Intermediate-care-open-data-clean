@@ -21,8 +21,7 @@ rm(list=ls()) # Clear up workspace
 if ('rvest' %in% .packages()) { 
   print('Project setup run')   
 }else{
-  source('00_Setup_and_packages.R')
-  print('Project setup run')
+  source('Scripts/00_Setup_and_packages.R')
   }
 
 
@@ -161,7 +160,7 @@ scrape_download_function <- function(i){
 
 
 if(nrow(months_links_df >= 1)){
-  lapply(1:nrow(months_links_df), scrape_download_function)     # Feed all undownloade files available on the NHSD page into the sraping and download function
+  lapply(1:nrow(months_links_df), scrape_download_function)     # Feed all undownloaded files available on the NHSD page into the sraping and download function
 }
 
 
@@ -191,9 +190,25 @@ all_csds_csv_byprovider <- lapply(1:length(current_files), function(i){
 
 names(all_csds_csv_byprovider) <- lapply(1:length(current_files), function(i){sub('.csv', '', current_files[[i]])})
 
-all_csds_csv_ICB <- lapply(1:length(current_files), function(i){
-  read_csv(paste0('Raw_data/CSDS_data/', current_files[[i]]))
+view(all_csds_csv_byprovider[['july-2020']])
+
+csds_provider_currentformat <- all_csds_csv_byprovider[c('august-2020', 'september-2020', 'october-2020', 'november-2020', 'december-2020', 'january-2021', 'february-2021',
+                                                  'march-2021', 'april-2021', 'may-2021', 'june-2021', 'july-2021', 'august-2021', 'september-2021', 'october-2021', 'november-2021', 'december-2021',
+                                                  'january-2022', 'february-2022', 'march-2022', 'april-2022', 'may-2022', 'june-2022', 'july-2022', 'august-2022', 'september-2022', 'october-2022', 
+                                                  'november-2022', 'december-2022',  'january-2023', 'february-2023', 'march-2023', 'april-2023', 'may-2023', 'june-2023', 'july-2023')] 
+
+view(csds_provider_IConly[[1]])
+
+csds_provider_IConly <- lapply(1:length(csds_provider_currentformat), function(i){
+  
+  df <- csds_provider_currentformat[[i]] %>%
+    filter(count_of == 'UniqueCareContacts' & measure %in% c(18, 51, 52, 53, 54, 48, 45))
+    
+  
+  return(df)
   
 })
 
+
+csds_IC_all <- do.call('rbind', csds_provider_IConly)
 

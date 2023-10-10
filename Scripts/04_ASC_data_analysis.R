@@ -17,9 +17,10 @@
 rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if ('rvest' %in% .packages()) {   
+if ('rvest' %in% .packages()) { 
+  print('Project setup run')
 }else{
-  source('00_Setup_and_packages.R')}
+  source('Scripts/00_Setup_and_packages.R')}
 
 
 ################################################
