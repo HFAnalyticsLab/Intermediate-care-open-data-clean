@@ -174,8 +174,12 @@ if(nrow(months_links_df >= 1)){
 ################ LOAD IN ALL DATA ##############
 ################################################
 
-all_csds_csv_byprovider <- lapply(1:length(current_files), function(i){
-  csv <- read_csv(paste0('Raw_data/CSDS_data/', current_files[[i]]))
+refreshed_current_files <- list.files(here('Raw_data/CSDS_data'), pattern='csv')  
+
+print(refreshed_current_files)
+
+all_csds_csv_byprovider <- lapply(1:length(refreshed_current_files), function(i){
+  csv <- read_csv(paste0('Raw_data/CSDS_data/', refreshed_current_files[[i]]))
   
   names(csv) <- tolower(names(csv))
   
@@ -194,9 +198,7 @@ all_csds_csv_byprovider <- lapply(1:length(current_files), function(i){
   return(csv)
        })
 
-names(all_csds_csv_byprovider) <- lapply(1:length(current_files), function(i){sub('.csv', '', current_files[[i]])})
-
-view(all_csds_csv_byprovider[['july-2020']])
+names(all_csds_csv_byprovider) <- lapply(1:length(refreshed_current_files), function(i){sub('.csv', '', refreshed_current_files[[i]])})
 
 
 # I don't think we can find anything useable in the pre-august 2020 editions of the dataset
@@ -206,7 +208,6 @@ csds_provider_currentformat <- all_csds_csv_byprovider[c('august-2020', 'septemb
                                                   'january-2022', 'february-2022', 'march-2022', 'april-2022', 'may-2022', 'june-2022', 'july-2022', 'august-2022', 'september-2022', 'october-2022', 
                                                   'november-2022', 'december-2022',  'january-2023', 'february-2023', 'march-2023', 'april-2023', 'may-2023', 'june-2023', 'july-2023')] 
 
-view(csds_provider_IConly[[1]])
 
 csds_provider_IConly <- lapply(1:length(csds_provider_currentformat), function(i){
   

@@ -85,13 +85,35 @@ download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-
 
 ## WRANGLE ASC-FR DATA
 
+# 2016/17
 
 
 
+# 2017/18
 
 
 
+# 2018/19
 
+t21_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T21', skip = 8, col_names = FALSE)
+
+t23_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T23', skip = 8, col_names = FALSE)
+
+t24_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T24', skip = 8, col_names = FALSE)
+
+t28_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T28', skip = 8, col_names = FALSE)
+
+t32_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T32', skip = 8, col_names = FALSE)
+
+# 2019/20
+
+
+
+# 2020/21
+
+
+
+# 2021/22
 
 
 
@@ -173,9 +195,6 @@ names(table_2d) <- colnames_2d
 table_2d <- table_2d %>%
   pivot_longer(4:27, names_to = 'metric', values_to = 'value') %>%
   separate(metric, c('year', 'variable_type', 'metric'), sep = ':')
-
-
-
 
 
 
