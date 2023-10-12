@@ -222,9 +222,9 @@ csds_provider_IConly <- lapply(1:length(csds_provider_currentformat), function(i
 
 csds_IC_all <- do.call('rbind', csds_provider_IConly)
 
-csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-04-20'] <- '2020-04-01'
-csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-05-20'] <- '2020-05-01'
-csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-06-20'] <- '2020-06-01'
+csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-04-20'] <- '2022-04-01' # The date formatting changed from dashes to slashes in these months - R reads only the first two digits of the year in an attempt to parse them
+csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-05-20'] <- '2022-05-01' # In the same format as the other dates. This is fixed here 
+csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-06-20'] <- '2022-06-01'
 
 #####################################################
 ################ ANALYZE DATA #######################
