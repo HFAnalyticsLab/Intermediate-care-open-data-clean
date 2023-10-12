@@ -83,37 +83,47 @@ download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-
 ################# WRANGLE DATA INTO AMENABLE FORMAT ######################
 ##########################################################################
 
+ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
+
+ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCFR_2016-17.xlsx', 'ASCOF-time-series.xlsx')]
+
+
 ## WRANGLE ASC-FR DATA
 
 # 2016/17
 
+t21_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T21', skip = 8, col_names = FALSE)
+
+t23_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T23', skip = 8, col_names = FALSE)
+
+t24_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T24', skip = 8, col_names = FALSE)
+
+t28_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T28', skip = 8, col_names = FALSE)
+
+t32_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T32', skip = 8, col_names = FALSE)
 
 
-# 2017/18
+# All other years
 
+t21_all <- lapply(ascfr_data, function(i){
+  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE)
+})
+  
+t23_all <- lapply(ascfr_data, function(i){
+  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE)
+})
 
+t24_all <- lapply(ascfr_data, function(i){
+  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 26, col_names = FALSE)
+})
 
-# 2018/19
+t28_all <- lapply(ascfr_data, function(i){
+  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 21, col_names = FALSE)
+})
 
-t21_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T21', skip = 8, col_names = FALSE)
-
-t23_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T23', skip = 8, col_names = FALSE)
-
-t24_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T24', skip = 8, col_names = FALSE)
-
-t28_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T28', skip = 8, col_names = FALSE)
-
-t32_1819 <- read_excel('Raw_data/ASC_data/ASCFR_2018-19.xlsx', sheet = 'T32', skip = 8, col_names = FALSE)
-
-# 2019/20
-
-
-
-# 2020/21
-
-
-
-# 2021/22
+t32_all <- lapply(ascfr_data, function(i){
+  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T32', skip = 21, col_names = FALSE)
+})
 
 
 
