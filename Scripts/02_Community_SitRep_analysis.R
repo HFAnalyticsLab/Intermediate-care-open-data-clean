@@ -122,61 +122,75 @@ import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_
 # Whether this change will continue must be checked for future vintages of the data
 
 
-import_sheets_function <- function(file_name, table){
+#TO DO: FIX JULY AND AUGUST FOR TABLE 5
+
+import_sheets_function <- function(file_name, table, level){
   
-  if (table == 'Table 4' & file_name %in% c('august2023.xlsx')){
+  if (table == 'Table 4'){
     raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home, new reablement support', 'P1 - Other, new reablement support',
                       'P1 - Hospice at Home, new care or support need', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)', 'P2 - Care Home (24hr support)', 'P2 - Other non-home (24hr support)',
                       'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)')
+  } else if(table == 'Table 5'){
+    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
+                      'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
+                      'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
+                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
+                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
+                      'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Safeguarding concern preventing discharge or Court of Protection')
+  }
+  
+  
+  if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx') & level %in% c('ICB', 'Trust')){
     
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 15, na = '-', col_names = FALSE)
     
-  } else if (table == 'Table 5' & file_name %in% c('august2023.xlsx')) {
-    
-    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
-                      'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
-                      'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
-                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
-                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
-                      'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Safeguarding concern preventing discharge or Court of Protection')
+  } else if ((table == 'Table 5' & file_name %in% c('july2023.xlsx', 'august2023.xlsx') & level %in% c('ICB', 'Trust')) |(table == 'Table 4' & !(file_name %in% c('august2023.xlsx', 'july2023.xlsx')) & level %in% c('ICB', 'Trust'))) {
     
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 14, na = '-', col_names = FALSE)
     
-  } else if (table == 'Table 4' & !(file_name %in% c('august2023.xlsx'))) {
+  } else if ((table == 'Table 5' & !(file_name %in% c('august2023.xlsx', 'july2023.xlsx')) & level %in% c('ICB', 'Trust'))) {
     
-    raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home, new reablement support', 'P1 - Other, new reablement support',
-                      'P1 - Hospice at Home, new care or support need', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)', 'P2 - Care Home (24hr support)', 'P2 - Other non-home (24hr support)',
-                      'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)')
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 13, na = '-', col_names = FALSE)
     
-    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 14, na = '-', col_names = FALSE)
+  } else if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx') & level == 'Region'){
     
-  } else if (table == 'Table 5' & !(file_name %in% c('august2023.xlsx'))){
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 5, na = '-', n_max = 8, col_names = FALSE)
     
-    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
-                      'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
-                      'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
-                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
-                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
-                      'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Safeguarding concern preventing discharge or Court of Protection')
+  } else if ((table == 'Table 5' & file_name %in% c('july2023.xlsx', 'august2023.xlsx') & level == 'Region') |(table == 'Table 4' & !(file_name %in% c('july2023.xlsx','august2023.xlsx')) & level == 'Region')) {
     
-    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 12, na = '-', col_names = FALSE)
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 4, na = '-', n_max = 8, col_names = FALSE)
     
-  }else {print('Error')}
+  } else if ((table == 'Table 5' & !(file_name %in% c('august2023.xlsx', 'july2023.xlsx')) & level == 'Region')) {
+    
+    discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 3, na = '-', n_max = 8, col_names = FALSE)
+    
+  } else {print('Error')}
   
-  table_colnames <- c('Region', 'Org_code', 'Org_name', raw_colnames)
   
-  if (table == 'Table 5' & file_name %in% c('september2023.xlsx')){
+  if (table == 'Table 5' & file_name %in% c('september2023.xlsx') & level %in% c('ICB', 'Trust')){
     discharges_all <- discharges_all %>%
       select(2:length(discharges_all))
   }
   
+  if (level %in% c('ICB', 'Trust')) {
+    table_colnames <- c('Region', 'Org_code', 'Org_name', raw_colnames)
+  } else if (level == 'Region'){
+    table_colnames <- c('Region', raw_colnames)
+  }
+
   names(discharges_all) <- table_colnames
   
-  stop_point <- which(discharges_all$Org_name == 'Org Name' & discharges_all$Org_code == 'Org Code')
-  
- 
-  discharge_df <- discharges_all[1:(stop_point-2),]
-  
+  if (level %in% c('ICB', 'Trust')){
+    stop_point <- which(discharges_all$Org_name == 'Org Name' & discharges_all$Org_name == 'Org Name')
+    
+    if (level == 'ICB'){
+      discharge_df <- discharges_all[1:(stop_point-2),]
+    } else if(level == 'Trust'){
+      discharge_df <- discharges_all[stop_point+1:(nrow(discharges_all)-stop_point),]
+    } else{print('Error')}
+  } else if (level == 'Region'){
+    discharge_df <- discharges_all
+  }
   
   return(discharge_df)  
   
@@ -184,13 +198,38 @@ import_sheets_function <- function(file_name, table){
 
 
 
-# Import first months for both relevant tables at ICB and trust level
+# Import all available months for both relevant tables at ICB and trust level
 
-table4_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4')})
+table4_region <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'Region')})
 
-table5_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5')})
+table4_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'ICB')})
 
-all_tables_list <- list(table4_ICB = table4_ICB, table5_ICB = table5_ICB)
+table5_region <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'Region')})
+
+table5_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'ICB')})
+
+# Add columns to regional tables
+
+table4_region <- lapply(table4_region, function(df){
+  df <- df %>%
+    mutate(Org_name = Region) %>%
+    mutate(Org_code = Region) %>%
+    select(Region, Org_code, Org_name, 2:13)
+  return(df)
+})
+
+
+table5_region <- lapply(table5_region, function(df){
+  df <- df %>%
+    mutate(Org_name = Region) %>%
+    mutate(Org_code = Region) %>%
+    select(Region, Org_code, Org_name, 2:19)
+  return(df)
+})
+
+# Add all tables to list
+
+all_tables_list <- list(table4_region = table4_region, table4_ICB = table4_ICB, table5_region = table5_region, table5_ICB = table5_ICB)
 
 
 # Apply uniform month labels to all tables
@@ -221,18 +260,26 @@ all_months_combined <- lapply(1:length(all_tables_pivoted), function(i){
 
 # Create individual dataframes for each table/level combo, including variable for separating out pathways
 
-ICB_discharges_by_destination <- all_months_combined[[1]] %>%
+region_discharges_by_destination <- all_months_combined[[1]] %>%
   mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
                              grepl('P1', metric) == TRUE ~ 'P1',
                              grepl('P2', metric) == TRUE ~ 'P2',
                              grepl('P3', metric) == TRUE ~ 'P3',
                              TRUE ~ 'Other'))
 
+ICB_discharges_by_destination <- all_months_combined[[2]] %>%
+  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
+                             grepl('P1', metric) == TRUE ~ 'P1',
+                             grepl('P2', metric) == TRUE ~ 'P2',
+                             grepl('P3', metric) == TRUE ~ 'P3',
+                             TRUE ~ 'Other'))
 
-ICB_delayed_discharges_by_reason <- all_months_combined[[2]]
+region_delayed_discharges_by_reason <- all_months_combined[[3]]
 
+ICB_delayed_discharges_by_reason <- all_months_combined[[4]]
 
-rm(table4_ICB, table5_ICB, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
+rm(table4_region, table4_ICB, table5_region, table5_ICB, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
+
 
 
 ## Load in time series

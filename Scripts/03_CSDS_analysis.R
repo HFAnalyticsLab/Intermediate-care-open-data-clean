@@ -234,8 +234,38 @@ csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-06-2
 # decline in that measure and growth in the others. Maybe we need to sum these? Truncate the time series?
 
 csds_IC_all %>%
-  filter(measure == 18 & org_level == 'All Submitters') %>%
-  ggplot(., aes(x = ymd(reporting_period_start), y = measure_value)) +
+  filter(measure %in% c(18, 51, 52, 53) & org_level == 'All Submitters') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = measure_value, color = measure_desc)) +
   geom_line() +
-  theme_minimal()
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
+# The enormous spike in Crisis response IC in July 2021 is due to the South Warwickshire trust beginning to report this service.
+# Their reporting of the service declines rapidly over the following months, but not immediately - why? Initially, a drop is also 
+# seen in their 'Intermediate care service' figure in July 2021, implying a portion of that related to crisis response IC prior to their separate reporting of it. 
+# This drop is nowhere near commensurate with the gain seen in crisis response in the same month. Not other breakdowns of IC are reported.
+
+csds_IC_all %>%
+  filter(org_code == 'RJC') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = measure_value, color = measure_desc)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
+
+## SUMMED INTERMEDIATE CARE
+csds_IC_all %>%
+  filter(measure %in% c(18, 51, 52, 53)) %>%
+  group_by(reporting_period_start, org_name) %>%
+  summarise(value = sum(measure_value)) %>%
+  filter(org_name == 'ALL SUBMITTERS') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = value)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
+
 

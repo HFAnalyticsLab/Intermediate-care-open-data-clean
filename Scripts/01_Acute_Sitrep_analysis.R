@@ -18,7 +18,7 @@
 # into an amenable shape for R. It then pivots and combines all monthly sheets into more easily filterable dataframes featuring 
 # all metrics in long format, divided into ICB and trust level. 
 
-# As it currently stands, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
+# As it currently stands, this script works to scrape, download and wrangle sitrep data up until September 2023. For future data, please be 
 # attentive to potential formatting differences which may complicate the wrangling stages.
 
 ################################################################################
@@ -126,19 +126,44 @@ import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_
 import_sheets_function <- function(file_name, table, level){
   
   if (table == 'Table 4'){
-    raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-')
+    raw_colnames <-  c('P0 - Domestic home without reablement support', 'P0 - Other without reablement support', 'P1 - Domestic home with reablement support', 'P1 - Other with reablement support',
+                       'P1 - Hotel with reablement support', 'P2 - Care Home (24hr support)', 'P2 - Designated Setting (isolation before moving to care home)', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)',
+                       'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)', 'P3b - Designated Setting (isolation before moving to care home as a new admission)')
+  } else if (table == 'Table 5'){
+    raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community hub/single point of access that referral received and actioned', 'Awaiting Diagnostic test',
+                      'Awaiting medicines to take home', 'Awaiting referral to community single point of access', 'Awaiting therapy decision to discharge', 'Awaiting transport', 'Declared as not meeting the criteria to reside at morning board round and then later in the day meets the criteria to reside so discharge stopped',
+                      'Homeless/no right of recourse to public funds/no place to discharge to', 'Individual/ family not in agreement with discharge plans', 'No Plan', 'Pathway 1: awaiting availability of resource for assessment and start of care at home',
+                      'Pathway 2: awaiting availability of rehabilitation bed in community hospital or other bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement',
+                      'Remains in hospital to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Repatriation/Transfer to another acute trust for specialist treatment or ongoing treatment', 'Safeguarding concern preventing discharge or Court of Protection')
+  }
+  
+  
+  if (table == 'Table 4' & !(file_name %in% c('september2023.xlsx')) & level %in% c('ICB', 'Trust')){
     
-  } else if (table == 'Table 5') {
-    raw_colnames <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 4, n_max = 0)
-    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 14, na = '-')
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 16, na = '-', col_names = FALSE)
+    
+  } else if ((table == 'Table 5' & level %in% c('ICB', 'Trust')) | (table == 'Table 4' & file_name %in% c('september2023.xlsx') & level %in% c('ICB', 'Trust'))) {
+    
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-', col_names = FALSE)
+    
+  } else if(level == 'Region' & table == 'Table 4' & !(file_name %in% c('september2023.xlsx'))){
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 6, na = '-', n_max = 8, col_names = FALSE)
+    
+  } else if ((level == 'Region' & table == 'Table 5') | (table == 'Table 4' & file_name %in% c('september2023.xlsx') & level == 'Region')){
+    discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, na = '-', n_max = 8, col_names = FALSE)
     
   } else {print('Error')}
   
-  table_colnames <- c('Region', 'Org_code', 'Org_name', names(raw_colnames))
+  if (level %in% c('ICB', 'Trust')) {
+    table_colnames <- c('Region', 'Org_code', 'Org_name', raw_colnames)
+  } else if (level == 'Region'){
+    table_colnames <- c('Region', raw_colnames)
+  }
+  
   
   names(discharges_all) <- table_colnames
   
+  if (level %in% c('ICB', 'Trust')){
   stop_point <- which(discharges_all$Org_name == 'Org Name' & discharges_all$Org_name == 'Org Name')
   
   if (level == 'ICB'){
@@ -146,6 +171,9 @@ import_sheets_function <- function(file_name, table, level){
   } else if(level == 'Trust'){
     discharge_df <- discharges_all[stop_point+1:(nrow(discharges_all)-stop_point),]
   } else{print('Error')}
+  } else if (level == 'Region'){
+    discharge_df <- discharges_all
+  }
   
   return(discharge_df)  
   
@@ -154,15 +182,40 @@ import_sheets_function <- function(file_name, table, level){
 
 # Import all available months for both relevant tables at ICB and trust level
 
+table4_region <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'Region')})
+  
 table4_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'ICB')})
 
 table4_trust <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'Trust')})
+
+table5_region <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'Region')})
 
 table5_ICB <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'ICB')})
 
 table5_trust <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 5', level = 'Trust')})
 
-all_tables_list <- list(table4_ICB = table4_ICB, table4_trust = table4_trust, table5_ICB = table5_ICB, table5_trust = table5_trust)
+# Add columns to regional tables
+
+table4_region <- lapply(table4_region, function(df){
+  df <- df %>%
+    mutate(Org_name = Region) %>%
+    mutate(Org_code = Region) %>%
+    select(Region, Org_code, Org_name, 2:13)
+  return(df)
+  })
+
+
+table5_region <- lapply(table5_region, function(df){
+  df <- df %>%
+    mutate(Org_name = Region) %>%
+    mutate(Org_code = Region) %>%
+    select(Region, Org_code, Org_name, 2:19)
+  return(df)
+})
+
+# Add all tables to list
+
+all_tables_list <- list(table4_region = table4_region, table4_ICB = table4_ICB, table4_trust = table4_trust, table5_region = table5_region, table5_ICB = table5_ICB, table5_trust = table5_trust)
 
 
 # Apply uniform month labels to all tables
@@ -193,25 +246,34 @@ all_months_combined <- lapply(1:length(all_tables_pivoted), function(i){
 
 # Create individual dataframes for each table/level combo, including variable for separating out pathways
 
-ICB_discharges_by_destination <- all_months_combined[[1]] %>%
+region_discharges_by_destination <- all_months_combined[[1]] %>%
   mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
                              grepl('P1', metric) == TRUE ~ 'P1',
                              grepl('P2', metric) == TRUE ~ 'P2',
                              grepl('P3', metric) == TRUE ~ 'P3',
                              TRUE ~ 'Other'))
 
-trust_discharges_by_destination <- all_months_combined[[2]] %>%
+ICB_discharges_by_destination <- all_months_combined[[2]] %>%
   mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
                              grepl('P1', metric) == TRUE ~ 'P1',
                              grepl('P2', metric) == TRUE ~ 'P2',
                              grepl('P3', metric) == TRUE ~ 'P3',
                              TRUE ~ 'Other'))
 
-ICB_delayed_discharges_by_reason <- all_months_combined[[3]]
+trust_discharges_by_destination <- all_months_combined[[3]] %>%
+  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
+                             grepl('P1', metric) == TRUE ~ 'P1',
+                             grepl('P2', metric) == TRUE ~ 'P2',
+                             grepl('P3', metric) == TRUE ~ 'P3',
+                             TRUE ~ 'Other'))
 
-trust_delayed_discharges_by_reason <- all_months_combined[[4]]
+region_delayed_discharges_by_reason <- all_months_combined[[4]]
 
-rm(table4_ICB, table4_trust, table5_ICB, table5_trust, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
+ICB_delayed_discharges_by_reason <- all_months_combined[[5]]
+
+trust_delayed_discharges_by_reason <- all_months_combined[[6]]
+
+rm(table4_region, table4_ICB, table4_trust, table5_region, table5_ICB, table5_trust, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
 
 
 ## Load in time series
@@ -225,11 +287,273 @@ weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.x
 ################### ANALYSIS ####################
 #################################################
 
-ICB_discharges_by_destination %>%
-  filter(pathway == 'P1') %>%
+## Total number of patients discharged on P1
+region_discharges_by_destination %>%
+  filter(pathway == 'P1' & Region == 'ENGLAND (Type 1 Trusts)') %>%
   group_by(period, date) %>%
   summarise(value = sum(value)) %>%
   ggplot(., aes(x = date, y = value)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_discharges_by_destination %>%
+  filter(pathway == 'P1' & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+ICB_discharges_by_destination %>%
+  filter(pathway == 'P1') %>%
+  select(-period) %>%
+  group_by(date, Org_code, Org_name) %>%
+  summarise(value = sum(value)) %>%
+  pivot_wider(names_from = date, values_from = c(value))
+
+trust_discharges_by_destination %>%
+  filter(pathway == 'P1') %>%
+  select(-period) %>%
+  group_by(date, Org_code, Org_name) %>%
+  summarise(value = sum(value)) %>%
+  pivot_wider(names_from = date, values_from = c(value))
+  
+## Total number of patients discharged on P2
+
+region_discharges_by_destination %>%
+  filter(pathway == 'P2' & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_discharges_by_destination %>%
+  filter(pathway == 'P2' & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+ICB_discharges_by_destination %>%
+  filter(pathway == 'P2') %>%
+  select(-period) %>%
+  group_by(date, Org_code, Org_name) %>%
+  summarise(value = sum(value)) %>%
+  pivot_wider(names_from = date, values_from = c(value))
+
+trust_discharges_by_destination %>%
+  filter(pathway == 'P2') %>%
+  select(-period) %>%
+  group_by(date, Org_code, Org_name) %>%
+  summarise(value = sum(value)) %>%
+  pivot_wider(names_from = date, values_from = c(value))
+
+
+# P1 discharges by destination 
+
+region_discharges_by_destination %>%
+  filter(pathway == 'P1' & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, metric) %>%
+  summarise(value = sum(value)) %>%
+ggplot(., aes(x = date, y = value, color = metric)) +
+  geom_line() +
+  theme_minimal()
+
+## Percentage of discharges on P1 
+region_discharges_by_destination %>%
+           group_by(period, date, Region) %>%
+           mutate(all_discharges = sum(value)) %>%
+           dplyr::ungroup() %>%
+           filter(pathway == 'P1' & Region == 'ENGLAND (Type 1 Trusts)') %>%
+           group_by(period, date, Region) %>%
+           summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+           mutate(percent_of_discharges = value/all_discharges) %>%
+           ggplot(., aes(x = date, y = percent_of_discharges)) +
+           geom_line(color = '#F8766D') +
+           theme_minimal()
+
+region_discharges_by_destination %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P1' & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+ICB_discharges_by_destination %>%
+  replace_na(list(value = 0)) %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P1') %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges)
+
+trust_discharges_by_destination %>%
+  replace_na(list(value = 0)) %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P1') %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges)
+
+## Percentage of discharges on P2 
+region_discharges_by_destination %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P2' & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  ggplot(., aes(x = date, y = percent_of_discharges)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_discharges_by_destination %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P2' & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+## NOTE: FIX DATE THING HERE, MAYBE DO GROUPING INSTEAD. FIGURE OUT MAP THING.
+ICB_discharges_by_destination %>%
+  replace_na(list(value = 0)) %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P2') %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  filter(date == max(ymd(Date))) %>%
+  ggplot(., aes(x = percent_of_discharges)) +
+  geom_histogram() +
+  theme_minimal()
+
+trust_discharges_by_destination %>%
+  replace_na(list(value = 0)) %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(pathway == 'P2') %>%
+  group_by(period, date, Org_code, Org_name) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>% 
+filter(date == '2023-09-01') %>%
+  ggplot(., aes(x = percent_of_discharges)) +
+  geom_histogram() +
+  theme_minimal()
+
+
+
+###TABLE 5 
+
+# Number of delayed discharges awaiting availability of care on pathway 1
+
+region_delayed_discharges_by_reason %>%
+filter(grepl('Pathway 1', metric) & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_delayed_discharges_by_reason %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(grepl('Pathway 1', metric) & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+
+# Number of delayed discharges awaiting availability of care on pathway 2
+
+region_delayed_discharges_by_reason %>%
+  filter(grepl('Pathway 2', metric) & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_delayed_discharges_by_reason %>%
+  filter(grepl('Pathway 2', metric) & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value, color = Region)) +
+  geom_line() +
+  theme_minimal()
+
+# Proportion of delayed discharges awaiting availability of care on pathway 1
+
+region_delayed_discharges_by_reason %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(grepl('Pathway 1', metric) & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  ggplot(., aes(x = date, y = percent_of_discharges)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_delayed_discharges_by_reason %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(grepl('Pathway 1', metric) & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>% 
+  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
+ geom_line() +
+  theme_minimal()
+
+
+# Proportion of delayed discharges awaiting availability of care on pathway 2
+
+region_delayed_discharges_by_reason %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(grepl('Pathway 2', metric) & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  ggplot(., aes(x = date, y = percent_of_discharges)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+region_delayed_discharges_by_reason %>%
+  group_by(period, date, Region) %>%
+  mutate(all_discharges = sum(value)) %>%
+  dplyr::ungroup() %>%
+  filter(grepl('Pathway 2', metric) & Region != 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, Region) %>%
+  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
+  mutate(percent_of_discharges = value/all_discharges) %>% 
+  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
   geom_line() +
   theme_minimal()
 
