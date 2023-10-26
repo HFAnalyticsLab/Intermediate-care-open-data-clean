@@ -1,6 +1,6 @@
 ## Install and load packages
 
-packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate', 'data.table', 'plotly')
+packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate', 'data.table', 'plotly', 'sf')
 
 installed_packages <- packages %in% row.names(installed.packages())
 
@@ -21,9 +21,36 @@ ifelse(!dir.exists(file.path(here('Outputs/'))), dir.create(file.path(here('Outp
 
 # Sub folders
 
-data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data')
+data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data', 'Maps')
 
 lapply(data_subfolders, function(i){
   ifelse(!dir.exists(file.path(here('Raw_data/', i))), dir.create(file.path(here('Raw_data/', i))), print('Directory already exists'))
 })
+
+
+## Download maps (these will be used several times throughout)
+
+# ICB map
+
+ICB_map_link <- 'https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Integrated_Care_Boards_April_2023_EN_BFC/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson'
+
+if (file.exists('Raw_data/Maps/ICB_map.geojson')){
+  print('ICB map already downloaded.')
+} else {
+  download.file(ICB_map_link, destfile = 'Raw_data/Maps/ICB_map.geojson')
+}
+
+
+
+# Local Authority map
+
+LA_map_link <- 'https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Local_Authority_Districts_May_2023_EW_BUC/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson'
+
+if (file.exists('Raw_data/Maps/LA_map.geojson')){
+  print('LA map already downloaded.')
+} else {
+  download.file(LA_map_link, destfile = 'Raw_data/Maps/LA_map.geojson')
+}
+
+
 

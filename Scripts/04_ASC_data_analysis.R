@@ -83,10 +83,6 @@ download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-
 ################# WRANGLE DATA INTO AMENABLE FORMAT ######################
 ##########################################################################
 
-ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
-
-ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCFR_2016-17.xlsx', 'ASCOF-time-series.xlsx')]
-
 
 ## WRANGLE ASC-FR DATA
 
@@ -105,8 +101,17 @@ t32_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T32', sk
 
 # All other years
 
+
+ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
+
+ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCFR_2016-17.xlsx', 'ASCOF-time-series.xlsx')]
+
+
 t21_all <- lapply(ascfr_data, function(i){
-  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE)
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE)
+  
+  names_df <- c('age_band', 'region_code', 'region_name', )
+  
 })
   
 t23_all <- lapply(ascfr_data, function(i){
@@ -134,7 +139,8 @@ t32_all <- lapply(ascfr_data, function(i){
 ## Table 2B(2): Proportion of older people receiving reablement care following discharge from hospital
 ## Table 2D: Proportion of new short-term service users who no further support or support at a lower level
 
-FYs <- c('2014-15', '2015-16', '2016-17', '2017-18', '2018-19', '2019-20', '2020-21', '2021-22')
+
+FYs <- c('2015-03-31', '2016-03-31', '2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
 
 variable_types <- c('Numerator', 'Denominator', 'Outcome')
 
@@ -216,6 +222,35 @@ table_2d <- table_2d %>%
 
 
 
+
+
+### ASC-OF data
+
+## Table 2B(1): Proportion of older people still at home 91 days after discharge from hospital into reablement services
+table_2b1 %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Outcome') %>%
+  ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+
+
+## Table 2B(2): Proportion of older people receiving reablement care following discharge from hospital
+table_2b2 %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Outcome') %>%
+  ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+
+# Prop receiving no or less intense care following reablement
+
+table_2d %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Outcome') %>%
+  ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+  
 
 
 

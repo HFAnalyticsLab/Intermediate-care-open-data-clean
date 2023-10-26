@@ -276,16 +276,24 @@ trust_delayed_discharges_by_reason <- all_months_combined[[6]]
 rm(table4_region, table4_ICB, table4_trust, table5_region, table5_ICB, table5_trust, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
 
 
-## Load in time series
+## Load in time series [CURRENTLY HASHED OUT AS WE HAVENT USED THEM AT ALL]
 
-daily_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
+#daily_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
 
-weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
+#weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
 
 
 #################################################
 ################### ANALYSIS ####################
 #################################################
+
+# Add maps
+
+ICB_map <- read_sf('Raw_data/Maps/ICB_map.geojson')
+
+ICB_map$ICB23NM <- toupper(ICB_map$ICB23NM)
+
+most_recent_date <- max(((ICB_discharges_by_destination$date))) # Define most recent date
 
 ## Total number of patients discharged on P1
 region_discharges_by_destination %>%
@@ -309,14 +317,23 @@ ICB_discharges_by_destination %>%
   select(-period) %>%
   group_by(date, Org_code, Org_name) %>%
   summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
+  filter(date == most_recent_date)
+#   %>%
+ # left_join(., ICB_map, by=c('Org_name'='ICB23NM')) %>%
+  #ggplot(., aes()) +
+  #geom_sf() +
+  #theme_void() +
+  #scale_fill_viridis_b()
 
 trust_discharges_by_destination %>%
   filter(pathway == 'P1') %>%
   select(-period) %>%
   group_by(date, Org_code, Org_name) %>%
   summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
+  filter(date == most_recent_date) %>%
+  ggplot(., aes(x=value)) +
+  geom_histogram(fill = 'lightblue') +
+  theme_minimal()
   
 ## Total number of patients discharged on P2
 
@@ -341,14 +358,17 @@ ICB_discharges_by_destination %>%
   select(-period) %>%
   group_by(date, Org_code, Org_name) %>%
   summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
+  filter(date == most_recent_date)
 
 trust_discharges_by_destination %>%
   filter(pathway == 'P2') %>%
   select(-period) %>%
   group_by(date, Org_code, Org_name) %>%
   summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
+  filter(date == most_recent_date) %>%
+  ggplot(., aes(x=value)) +
+  geom_histogram(fill = 'lightblue') +
+  theme_minimal()
 
 
 # P1 discharges by destination 
@@ -358,6 +378,16 @@ region_discharges_by_destination %>%
   group_by(period, date, metric) %>%
   summarise(value = sum(value)) %>%
 ggplot(., aes(x = date, y = value, color = metric)) +
+  geom_line() +
+  theme_minimal()
+
+# P2 discharges by destination 
+
+region_discharges_by_destination %>%
+  filter(pathway == 'P2' & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, date, metric) %>%
+  summarise(value = sum(value)) %>%
+  ggplot(., aes(x = date, y = value, color = metric)) +
   geom_line() +
   theme_minimal()
 
@@ -394,7 +424,8 @@ ICB_discharges_by_destination %>%
   filter(pathway == 'P1') %>%
   group_by(period, date, Org_code, Org_name) %>%
   summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges)
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  filter(date == most_recent_date)
 
 trust_discharges_by_destination %>%
   replace_na(list(value = 0)) %>%
@@ -404,7 +435,11 @@ trust_discharges_by_destination %>%
   filter(pathway == 'P1') %>%
   group_by(period, date, Org_code, Org_name) %>%
   summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges)
+  mutate(percent_of_discharges = value/all_discharges) %>%
+  filter(date == most_recent_date) %>%
+  ggplot(., aes(x=percent_of_discharges)) +
+  geom_histogram(fill = 'lightblue') +
+  theme_minimal()
 
 ## Percentage of discharges on P2 
 region_discharges_by_destination %>%
@@ -431,7 +466,7 @@ region_discharges_by_destination %>%
   geom_line() +
   theme_minimal()
 
-## NOTE: FIX DATE THING HERE, MAYBE DO GROUPING INSTEAD. FIGURE OUT MAP THING.
+
 ICB_discharges_by_destination %>%
   replace_na(list(value = 0)) %>%
   group_by(period, date, Org_code, Org_name) %>%
@@ -441,10 +476,7 @@ ICB_discharges_by_destination %>%
   group_by(period, date, Org_code, Org_name) %>%
   summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
   mutate(percent_of_discharges = value/all_discharges) %>%
-  filter(date == max(ymd(Date))) %>%
-  ggplot(., aes(x = percent_of_discharges)) +
-  geom_histogram() +
-  theme_minimal()
+  filter(date == most_recent_date) 
 
 trust_discharges_by_destination %>%
   replace_na(list(value = 0)) %>%
@@ -455,9 +487,9 @@ trust_discharges_by_destination %>%
   group_by(period, date, Org_code, Org_name) %>%
   summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
   mutate(percent_of_discharges = value/all_discharges) %>% 
-filter(date == '2023-09-01') %>%
-  ggplot(., aes(x = percent_of_discharges)) +
-  geom_histogram() +
+  filter(date == most_recent_date) %>%
+  ggplot(., aes(x=percent_of_discharges)) +
+  geom_histogram(fill = 'lightblue') +
   theme_minimal()
 
 

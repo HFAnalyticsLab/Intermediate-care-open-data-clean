@@ -241,10 +241,18 @@ csds_IC_all %>%
   xlab('Date') +
   ylab('Care Contacts')
 
+csds_IC_all %>%
+  filter(org_level == 'All Submitters') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = measure_value, color = measure_desc)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
 # The enormous spike in Crisis response IC in July 2021 is due to the South Warwickshire trust beginning to report this service.
 # Their reporting of the service declines rapidly over the following months, but not immediately - why? Initially, a drop is also 
 # seen in their 'Intermediate care service' figure in July 2021, implying a portion of that related to crisis response IC prior to their separate reporting of it. 
-# This drop is nowhere near commensurate with the gain seen in crisis response in the same month. Not other breakdowns of IC are reported.
+# This drop is nowhere near commensurate with the gain seen in crisis response in the same month. No other breakdowns of IC are reported.
 
 csds_IC_all %>%
   filter(org_code == 'RJC') %>%
@@ -262,10 +270,46 @@ csds_IC_all %>%
   summarise(value = sum(measure_value)) %>%
   filter(org_name == 'ALL SUBMITTERS') %>%
   ggplot(., aes(x = ymd(reporting_period_start), y = value)) +
-  geom_line() +
+  geom_line(color = 'blue') +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
+csds_IC_all %>%
+  group_by(reporting_period_start, org_name) %>%
+  summarise(value = sum(measure_value)) %>%
+  filter(org_name == 'ALL SUBMITTERS') %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = value)) +
+  geom_line(color = 'blue') +
   theme_minimal() +
   xlab('Date') +
   ylab('Care Contacts')
 
 
+# Comparison of provider types
+csds_IC_all %>%
+  mutate(NHS_trust = case_when(grepl('^R', org_code) == TRUE ~ 'NHS trust', 
+    TRUE ~ 'Other providers'
+  )) %>%
+  filter(org_name != 'ALL SUBMITTERS') %>%
+  group_by(reporting_period_start, NHS_trust) %>%
+  summarise(value = sum(measure_value)) %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = value, color = NHS_trust)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
+
+csds_IC_all %>%
+  mutate(NHS_trust = case_when(grepl('^R', org_code) == TRUE ~ 'NHS trust', 
+                               TRUE ~ 'Other providers'
+  )) %>%
+  filter(org_name != 'ALL SUBMITTERS' & measure %in% c(18, 51, 52, 53)) %>%
+  group_by(reporting_period_start, NHS_trust) %>%
+  summarise(value = sum(measure_value)) %>%
+  ggplot(., aes(x = ymd(reporting_period_start), y = value, color = NHS_trust)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Care Contacts')
 
