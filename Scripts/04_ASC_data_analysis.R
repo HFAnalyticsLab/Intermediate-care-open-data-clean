@@ -11,6 +11,7 @@
 # but even with the data dictionaries their interpretation is quite opaque - as such, since we're only interested in 
 # a few quite specific measures, for now it seems more worth wrangling the excel sheets into an R readable format.
 
+# TO DO: Sort 2016/17
 ################################################################################
 ################################################################################
 
@@ -96,41 +97,117 @@ t24_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T24', sk
 
 t28_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T28', skip = 8, col_names = FALSE)
 
-t32_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T32', skip = 8, col_names = FALSE)
-
 
 # All other years
-
 
 ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
 
 ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCFR_2016-17.xlsx', 'ASCOF-time-series.xlsx')]
 
-
 t21_all <- lapply(ascfr_data, function(i){
   df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE)
   
-  names_df <- c('age_band', 'region_code', 'region_name', )
+  names(df) <- c('age_band', 'region_code', 'region_name', 'Early Cessation of Service, NHS-funded, deceased: value', 'Early Cessation of Service, NHS-funded, deceased: percentage',
+                'Early Cessation of Service, not leading to long term support: value', 'Early Cessation of Service, not leading to long term support: percentage', 'Early Cessation of Service, leading to long term support: value',
+                'Early Cessation of Service, leading to long term support: percentage', 'Long Term Support: value', 'Long Term Support: percentage', 'No services provided, needs identified but self funding: value', 
+                'No services provided, needs identified but self funding: percentage', 'Ongoing Low Level Support: value', 'Ongoing Low Level Support: percentage', 'Short Term Support: value', 'Short Term Support: percentage',
+                'No services provided, needs identified but support declined: value', 'No services provided, needs identified but support declined: percentage',
+                'No services provided, signposted to other services: value', 'No services provided, signposted to other services: percentage', 'No services provided, no identified needs: value', 'No services provided, no identified needs: percentage',
+                'Total: value')
+  
+  df <- df[rowSums(is.na(df)) != ncol(df), ]
+  
+  df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
+  
+  df$age_band[3:11] <- '18-64'
+  
+  df$age_band[13:21] <- '65 and over'
+  
+  df <- df %>% 
+    mutate_all(function(.){(str_replace(., "%", ""))})
+  
+  df <- df %>%
+    pivot_longer(4:length(df), names_to = 'metric', values_to = 'value')
+  
+  df$value <- as.numeric(df$value)
+  
+  df <- df %>%
+    separate_wider_delim(metric, delim = ': ', names = c('metric', 'metric_type'))
+   
+  return(df)
   
 })
   
-t23_all <- lapply(ascfr_data, function(i){
-  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE)
-})
+#t23_all <- lapply(ascfr_data, function(i){
+ # read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE)
+#})
 
 t24_all <- lapply(ascfr_data, function(i){
-  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 26, col_names = FALSE)
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE)
+  
+  names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Episodes of ST-MAX per 100,000 adults', 'Episodes of ST-MAX',
+                 'Population')
+  
+  df <- df[rowSums(is.na(df)) != ncol(df), ]
+  
+  df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
+  
+  df <- df %>% 
+    mutate_all(function(.){(str_replace(., "[x]", '0'))}) %>% 
+    mutate_all(function(.){(str_replace(., "[c]", '0'))})
+  
+  df <- df %>%
+   pivot_longer(6:length(df), names_to = 'metric', values_to = 'value')
+  
+  df$value <- as.numeric(df$value)
+  
+  return(df)
+  
 })
 
 t28_all <- lapply(ascfr_data, function(i){
-  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 21, col_names = FALSE)
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
+  
+  names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Completed episodes of ST-Max per client: 18-64', 'Completed episodes of ST-Max: 18-64', 'Clients: 18-64',
+                 'Completed episodes of ST-Max per client: 65+', 'Completed episodes of ST-Max: 65+', 'Clients: 65+',
+                 'Completed episodes of ST-Max per client: Total', 'Completed episodes of ST-Max: Total', 'Clients: Total')
+  
+  df <- df[rowSums(is.na(df)) != ncol(df), ]
+  
+  df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
+  
+  df <- df %>% 
+    mutate_all(function(.){(str_replace(., "//[x]", '0'))}) %>% 
+    mutate_all(function(.){(str_replace(., "//[c]", '0'))})
+  
+  df <- df %>%
+    pivot_longer(6:length(df), names_to = 'metric', values_to = 'value')
+  
+  df$value <- as.numeric(df$value)
+  
+  df <- df %>%
+   separate_wider_delim(metric, delim = ': ', names = c('metric', 'age_band'))
+  
+  return(df)
 })
 
-t32_all <- lapply(ascfr_data, function(i){
-  read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T32', skip = 21, col_names = FALSE)
-})
+all_ascfr_tables <- list(t21_all, t24_all, t28_all)
 
+ascfr_FYs <- c('2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
 
+for (i in 1:3){
+  for (x in 1:5){
+    all_ascfr_tables[[i]][[x]] <- all_ascfr_tables[[i]][[x]] %>%
+      mutate(date = ascfr_FYs[[x]])
+  }
+  all_ascfr_tables[[i]] <- do.call('rbind', all_ascfr_tables[[i]])
+}
+
+t21_final <- all_ascfr_tables[[1]]
+
+t24_final <- all_ascfr_tables[[2]]
+
+t28_final <- all_ascfr_tables[[3]]
 
 
 ## WRANGLE ASC-OF DATA
@@ -140,13 +217,13 @@ t32_all <- lapply(ascfr_data, function(i){
 ## Table 2D: Proportion of new short-term service users who no further support or support at a lower level
 
 
-FYs <- c('2015-03-31', '2016-03-31', '2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascof_FYs <- c('2015-03-31', '2016-03-31', '2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
 
 variable_types <- c('Numerator', 'Denominator', 'Outcome')
 
 initial_labels <- c()
 
-for (i in FYs) {
+for (i in ascof_FYs) {
   for (x in variable_types){
     item <- paste0(i, ':', x)
     initial_labels <- c(initial_labels, item)
@@ -218,7 +295,7 @@ table_2d <- table_2d %>%
 ################ ANALYZE DATA #######################
 #####################################################
 
-
+# ASC-FR DATA
 
 
 

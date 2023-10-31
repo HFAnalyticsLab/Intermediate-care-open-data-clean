@@ -179,6 +179,7 @@ refreshed_current_files <- list.files(here('Raw_data/CSDS_data'), pattern='csv')
 print(refreshed_current_files)
 
 all_csds_csv_byprovider <- lapply(1:length(refreshed_current_files), function(i){
+  
   csv <- read_csv(paste0('Raw_data/CSDS_data/', refreshed_current_files[[i]]))
   
   names(csv) <- tolower(names(csv))
@@ -225,10 +226,12 @@ csds_IC_all <- do.call('rbind', csds_provider_IConly)
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-04-20'] <- '2022-04-01' # The date formatting changed from dashes to slashes in these months - R reads only the first two digits of the year in an attempt to parse them
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-05-20'] <- '2022-05-01' # In the same format as the other dates. This is fixed here 
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-06-20'] <- '2022-06-01'
-
+  
 #####################################################
 ################ ANALYZE DATA #######################
 #####################################################
+
+
 
 # NOTE: We seem to see a transition from submitters recording IC in the Intermediate care service measure to the specific categories over time, creating a false appearance of 
 # decline in that measure and growth in the others. Maybe we need to sum these? Truncate the time series?
