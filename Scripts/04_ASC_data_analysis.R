@@ -11,7 +11,6 @@
 # but even with the data dictionaries their interpretation is quite opaque - as such, since we're only interested in 
 # a few quite specific measures, for now it seems more worth wrangling the excel sheets into an R readable format.
 
-# TO DO: Sort 2016/17
 ################################################################################
 ################################################################################
 
@@ -70,6 +69,12 @@ if (file.exists('Raw_data/ASC_data/ASCFR_2021-22.xlsx')){print('2021/22 ASCFR da
 download.file('https://files.digital.nhs.uk/AF/4C9A4F/ASCFR%20and%20SALT%20Data%20Tables%202021-22.xlsx', 'Raw_data/ASC_data/ASCFR_2021-22.xlsx')
 }
 
+# 2022/23
+
+#if (file.exists('Raw_data/ASC_data/ASCFR_2022-23.xlsx')){print('2022/23 ASCFR data already loaded')
+#} else{
+#  download.file('https://files.digital.nhs.uk/99/CE12BB/ASCFR%20and%20SALT%20Data%20Tables%202022-23.xlsx', 'Raw_data/ASC_data/ASCFR_2022-23.xlsx')
+#}
 
 ### DOWNLOAD ASCOF DATA
 
@@ -80,6 +85,7 @@ download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-
 }
 
 
+
 ##########################################################################
 ################# WRANGLE DATA INTO AMENABLE FORMAT ######################
 ##########################################################################
@@ -87,25 +93,18 @@ download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-
 
 ## WRANGLE ASC-FR DATA
 
-# 2016/17
-
-t21_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T21', skip = 8, col_names = FALSE)
-
-t23_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T23', skip = 8, col_names = FALSE)
-
-t24_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T24', skip = 8, col_names = FALSE)
-
-t28_1617 <- read_excel('Raw_data/ASC_data/ASCFR_2016-17.xlsx', sheet = 'T28', skip = 8, col_names = FALSE)
-
-
-# All other years
-
 ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
 
-ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCFR_2016-17.xlsx', 'ASCOF-time-series.xlsx')]
+ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCOF-time-series.xlsx')]
 
-t21_all <- lapply(ascfr_data, function(i){
-  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE)
+episodes_byageband <- lapply(ascfr_data, function(i){
+  
+  if (i == 'ASCFR_2016-17.xlsx') {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T16', skip = 7, col_names = FALSE)
+  }else {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE) 
+  }
+  
   
   names(df) <- c('age_band', 'region_code', 'region_name', 'Early Cessation of Service, NHS-funded, deceased: value', 'Early Cessation of Service, NHS-funded, deceased: percentage',
                 'Early Cessation of Service, not leading to long term support: value', 'Early Cessation of Service, not leading to long term support: percentage', 'Early Cessation of Service, leading to long term support: value',
@@ -142,7 +141,7 @@ t21_all <- lapply(ascfr_data, function(i){
  # read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE)
 #})
 
-t24_all <- lapply(ascfr_data, function(i){
+number_of_episodes <- lapply(ascfr_data, function(i){
   df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE)
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Episodes of ST-MAX per 100,000 adults', 'Episodes of ST-MAX',
@@ -166,7 +165,8 @@ t24_all <- lapply(ascfr_data, function(i){
 })
 
 t28_all <- lapply(ascfr_data, function(i){
-  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
+  
+   df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Completed episodes of ST-Max per client: 18-64', 'Completed episodes of ST-Max: 18-64', 'Clients: 18-64',
                  'Completed episodes of ST-Max per client: 65+', 'Completed episodes of ST-Max: 65+', 'Clients: 65+',
@@ -193,10 +193,10 @@ t28_all <- lapply(ascfr_data, function(i){
 
 all_ascfr_tables <- list(t21_all, t24_all, t28_all)
 
-ascfr_FYs <- c('2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascfr_FYs <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
 
 for (i in 1:3){
-  for (x in 1:5){
+  for (x in 1:6){
     all_ascfr_tables[[i]][[x]] <- all_ascfr_tables[[i]][[x]] %>%
       mutate(date = ascfr_FYs[[x]])
   }
@@ -295,10 +295,17 @@ table_2d <- table_2d %>%
 ################ ANALYZE DATA #######################
 #####################################################
 
-# ASC-FR DATA
+### ASC-FR DATA
 
+# Number of episodes
 
+t24_final %>%
+  filter(region_name == 'England' & metric == 'Episodes of ST-MAX') %>%
+  ggplot(., aes(x = as_date(date), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
 
+#
 
 
 ### ASC-OF data
