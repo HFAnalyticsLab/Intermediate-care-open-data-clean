@@ -40,7 +40,15 @@ if (file.exists('Raw_data/Maps/ICB_map.geojson')){
   download.file(ICB_map_link, destfile = 'Raw_data/Maps/ICB_map.geojson')
 }
 
+# Regional map
 
+region_map_link <- 'https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Regions_December_2022_Boundaries_EN_BFC_V2/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson'
+
+if (file.exists('Raw_data/Maps/Region_map.geojson')){
+  print('Region map already downloaded.')
+} else {
+  download.file(region_map_link, destfile = 'Raw_data/Maps/Region_map.geojson')
+}
 
 # Local Authority map
 

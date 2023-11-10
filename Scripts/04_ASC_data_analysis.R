@@ -97,7 +97,7 @@ ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
 
 ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCOF-time-series.xlsx')]
 
-episodes_byageband <- lapply(ascfr_data, function(i){
+t21_all <- lapply(ascfr_data, function(i){
   
   if (i == 'ASCFR_2016-17.xlsx') {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T16', skip = 7, col_names = FALSE)
@@ -135,13 +135,13 @@ episodes_byageband <- lapply(ascfr_data, function(i){
    
   return(df)
   
-})
-  
-#t23_all <- lapply(ascfr_data, function(i){
- # read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE)
-#})
+})     # Episodes for new clients, by what happened next and age band
 
-number_of_episodes <- lapply(ascfr_data, function(i){
+t24_all <- lapply(ascfr_data, function(i){
+  if  (i == 'ASCFR_2016-17.xlsx'){
+    
+  } else {
+  
   df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE)
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Episodes of ST-MAX per 100,000 adults', 'Episodes of ST-MAX',
@@ -152,8 +152,8 @@ number_of_episodes <- lapply(ascfr_data, function(i){
   df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
   
   df <- df %>% 
-    mutate_all(function(.){(str_replace(., "[x]", '0'))}) %>% 
-    mutate_all(function(.){(str_replace(., "[c]", '0'))})
+    mutate_all(function(.){(str_replace(., "//[x]", '0'))}) %>% 
+    mutate_all(function(.){(str_replace(., "//[c]", '0'))})
   
   df <- df %>%
    pivot_longer(6:length(df), names_to = 'metric', values_to = 'value')
@@ -162,11 +162,53 @@ number_of_episodes <- lapply(ascfr_data, function(i){
   
   return(df)
   
-})
+}})      # Number of episodes for new clients per 100,000 adults
+
+t24_all <- t24_all[2:6]
+
+t27_all <- lapply(ascfr_data, function(i){
+  
+  if (i == 'ASCFR_2016-17.xlsx') {
+    
+  }else {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T27', skip = 8, col_names = FALSE) 
+    
+    
+    names(df) <- c('age_band', 'region_code', 'region_name', 'Early Cessation of Service, NHS-funded, deceased',
+                   'Early Cessation of Service, not leading to long term support',  'Early Cessation of Service, leading to long term support', 'Move to nursing care (from community)',
+                   'Move to residential care (from community)', 'Move to community', 'Level of long-term support increased', 'No change in long-term support', 'Level of long-term support decreased',
+                   'All long term support ended, no ongoing eligible needs', 'Total' )
+    
+    
+    df <- df[rowSums(is.na(df)) != ncol(df), ]
+    
+    df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
+    
+    df$age_band[3:11] <- '18-64'
+    
+    df$age_band[13:21] <- '65 and over'
+    
+    df <- df %>% 
+      mutate_all(function(.){(str_replace(., "//*", '0'))})
+    
+    df <- df %>%
+      pivot_longer(4:length(df), names_to = 'metric', values_to = 'value')
+    
+    df$value <- as.numeric(df$value)
+    
+    return(df)
+    
+  }}) 
+
+t27_all <- t27_all[2:6]
 
 t28_all <- lapply(ascfr_data, function(i){
   
-   df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
+  if  (i == 'ASCFR_2016-17.xlsx'){
+    
+  } else {
+  
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Completed episodes of ST-Max per client: 18-64', 'Completed episodes of ST-Max: 18-64', 'Clients: 18-64',
                  'Completed episodes of ST-Max per client: 65+', 'Completed episodes of ST-Max: 65+', 'Clients: 65+',
@@ -189,25 +231,140 @@ t28_all <- lapply(ascfr_data, function(i){
    separate_wider_delim(metric, delim = ': ', names = c('metric', 'age_band'))
   
   return(df)
-})
+}})    # Number of episodes per client by age band, all clients
 
-all_ascfr_tables <- list(t21_all, t24_all, t28_all)
+t28_all <- t28_all[2:6]
 
-ascfr_FYs <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascfr_tables <- list(t24_all, t27_all, t28_all)
 
-for (i in 1:3){
-  for (x in 1:6){
-    all_ascfr_tables[[i]][[x]] <- all_ascfr_tables[[i]][[x]] %>%
-      mutate(date = ascfr_FYs[[x]])
-  }
-  all_ascfr_tables[[i]] <- do.call('rbind', all_ascfr_tables[[i]])
+ascfr_FYs_all <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+
+ascfr_FYs_short <- c('2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+
+for (x in 1:6){
+ t21_all[[x]] <- t21_all[[x]] %>%
+    mutate(date = ascfr_FYs_all[[x]])
 }
 
-t21_final <- all_ascfr_tables[[1]]
+t21_final <- do.call('rbind', t21_all)
 
-t24_final <- all_ascfr_tables[[2]]
+for (i in 1:3){
+  for (x in 1:5){
+    ascfr_tables[[i]][[x]] <- ascfr_tables[[i]][[x]] %>%
+      mutate(date = ascfr_FYs_short[[x]])
+  }
+  ascfr_tables[[i]] <- do.call('rbind', ascfr_tables[[i]])
+}
 
-t28_final <- all_ascfr_tables[[3]]
+t24_final <- ascfr_tables[[1]]
+
+t27_final <- ascfr_tables[[2]]
+
+t28_final <- ascfr_tables[[3]]
+
+
+
+
+# England-level only tables 
+
+t23_all <- lapply(ascfr_data, function(i){
+  
+  if (i == 'ASCFR_2016-17.xlsx') {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T17', skip = 8, col_names = FALSE)
+  }else {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE) 
+  }
+  
+ names(df) <- c('age_band', 'Sequel to ST-MAX', 'Blank', 'Physical Support, access and mobility only: value', 'Physical Support, access and mobility only: percentage',
+                'Physical Support, personal care support: value', 'Physical Support, personal care support: percentage', 'Sensory Support, support for visual impairment: value',
+                'Sensory Support, support for visual impairment: percentage', 'Sensory Support, support for hearing impairment: value', 'Sensory Support, support for hearing impairment: percentage',
+                'Sensory Support, support for dual impairment: value', 'Sensory Support, support for dual impairment: percentage', 'Support with memory and cognition: value', 'Support with memory and cognition: percentage',
+                'Learning disability support: value', 'Learning disability support: percentage', 'Mental health support: value', 'Mental health support: percentage', 'Social Support, substance misuse support: value',
+                'Social Support, substance misuse support: percentage', 'Social Support, asylum seeker support: value', 'Social Support, asylum seeker support: percentage', 'Social Support, support for isolation/Other: value',
+                'Social Support, support for isolation/Other: percentage', 'Total: value')
+ 
+ if (i == 'ASCFR_2016-17.xlsx') {
+   df <- df %>%
+     select(1:26)
+ }else {
+   
+ }
+ 
+ df <- df[rowSums(is.na(df)) != ncol(df), ]
+ 
+ df <- df[rowSums(is.na(df)) != ncol(df)-1, ]
+ 
+ df <- df %>%
+  filter(`Sequel to ST-MAX` == 'Total')
+ 
+ df <- df %>% 
+  mutate_all(function(.){(str_replace(., "%", ""))})
+ 
+ df <- df %>%
+  pivot_longer(4:length(df), names_to = 'metric', values_to = 'value')
+ 
+ df$value <- as.numeric(df$value)
+ 
+ df <- df %>%
+   separate_wider_delim(metric, delim = ': ', names = c('metric', 'metric_type'))
+ 
+ df <- df %>%
+   select(-Blank)
+ 
+ return(df)
+ 
+})
+
+for (x in 1:6){
+  t23_all[[x]] <- t23_all[[x]] %>%
+    mutate(date = ascfr_FYs_all[[x]])
+}
+
+t23_final <- do.call('rbind', t23_all)
+
+t25_26_all <- lapply(ascfr_data, function(i){
+  
+  if (i == 'ASCFR_2016-17.xlsx') {
+    df1 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T18', skip = 6, col_names = FALSE)
+    df2 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T19', skip = 6, col_names = FALSE)
+  }else {
+    df1 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T25', skip = 8, col_names = FALSE) 
+    df2 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T26', skip = 8, col_names = FALSE)
+  }
+  
+  col_names <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Physical Support, access and mobility only', 
+                 'Physical Support, personal care support', 'Sensory Support, support for visual impairment',
+                 'Sensory Support, support for hearing impairment', 'Sensory Support, support for dual impairment',  
+                 'Support with memory and cognition', 'Learning disability support: value','Mental health support', 'Social Support, substance misuse support',
+                 'Social Support, asylum seeker support', 'Social Support, support for isolation/Other', 'Total')
+  
+ names(df1) <- col_names
+ 
+ names(df2) <- col_names
+ 
+ df1 <- df1 %>%
+   filter(region_name == 'England') %>%
+   mutate(age_band = '18-64')
+ 
+ df2 <- df2 %>%
+   filter(region_name == 'England') %>%
+   mutate(age_band = '65+')
+ 
+ df <- rbind(df1, df2)
+  
+  return(df)
+  
+})  # Number of completed episodes by primary support reason for existing clients, by age band
+
+for (x in 1:6){
+  t25_26_all[[x]] <- t25_26_all[[x]] %>%
+    mutate(date = ascfr_FYs_all[[x]])
+}
+
+t25_26_final <- do.call('rbind', t25_26_all)
+
+
+# Number of completed episodes by primary support reason for existing clients, by age band
 
 
 ## WRANGLE ASC-OF DATA
@@ -295,18 +452,178 @@ table_2d <- table_2d %>%
 ################ ANALYZE DATA #######################
 #####################################################
 
+max_date <- max(t21_final$date)
+
+region_map <- read_sf('Raw_data/Maps/Region_map.geojson')
+
 ### ASC-FR DATA
 
 # Number of episodes
 
-t24_final %>%
-  filter(region_name == 'England' & metric == 'Episodes of ST-MAX') %>%
+t28_final %>%
+  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max' & age_band == 'Total')  # Compute percentage decline during COVID here
   ggplot(., aes(x = as_date(date), y = as.numeric(value))) +
   geom_line(color = '#F8766D') +
-  theme_minimal()
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Episodes of ST-MAX')
 
-#
+# Number of episodes by age band
 
+t28_final %>%
+    filter(region_name == 'England' & metric == 'Completed episodes of ST-Max' & is.na(LA_code) & date == max_date & age_band != 'Total') %>%
+    ggplot(., aes(x = reorder(age_band,  -value), y = as.numeric(value))) +
+    geom_col(fill = '#F8766D') +
+    theme_minimal() +
+    coord_flip() +
+    xlab('Age band') +
+    ylab('Episodes of ST_MAX')
+
+
+# Number of episodes by region and age band
+  
+t28_final %>%
+    filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & is.na(LA_code) & date == max_date & age_band != 'Total')
+    ggplot(., aes(x = reorder(region_name,  -value), y = as.numeric(value), fill = age_band)) +
+    geom_col() +
+    theme_minimal() +
+    coord_flip() +
+    xlab('Regions') +
+    ylab('Episodes of ST_MAX')
+  
+t28_final %>%
+   filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & is.na(LA_code) & date == max_date & age_band != 'Total') %>%
+  pivot_wider(names_from = age_band, values_from = value) %>%
+  mutate(percent_under65 = `18-64`/(`18-64`+`65+`))
+
+# Episodes of ST-MAX per client
+
+t28_final %>%
+  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max per client' & age_band == 'Total') %>%
+  ggplot(., aes(x = as_date(date), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Episodes of ST-MAX per client')
+
+# Episodes of ST-MAX per client by age band
+
+t28_final %>%
+  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max per client' & is.na(LA_code) & date == max_date & age_band != 'Total')
+
+  ggplot(., aes(x = reorder(age_band,  -value), y = as.numeric(value))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+  coord_flip() +
+  xlab('Age band') +
+  ylab('Episodes of ST_MAX per client')
+
+# Episodes of ST-MAX per client by region
+
+t28_final %>%
+  filter(region_name != 'England' & metric == 'Completed episodes of ST-Max per client' & age_band == 'Total' & is.na(LA_code) & date == max_date) %>%
+  ggplot(., aes(x = reorder(region_name,  -value), y = as.numeric(value))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+  coord_flip() +
+  xlab('Regions') +
+  ylab('Episodes of ST_MAX per client')
+
+# Episodes of ST-MAX per client by LA
+
+ggplotly(
+  t28_final %>%
+  filter(region_name != 'England' & metric == 'Completed episodes of ST-Max per client' & age_band == 'Total' & !is.na(LA_code) & date == max_date) %>%
+  ggplot(., aes(x = reorder(LA_name,  -value), y = as.numeric(value), text = paste0(reorder(LA_name,  -value), ': ', round(value, 2)))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+    theme(axis.text.x=element_blank()) +
+    xlab('Local Authorities') +
+    ylab('Episodes of ST_MAX per client')
+  , tooltip = 'text') %>%
+  layout(hoverlabel =list(bgcolor='white', font_color='black'))
+
+# Episodes of ST-MAX per 100,000 adults (Total)
+
+t24_final %>%
+  filter(region_name == 'England' & metric == 'Episodes of ST-MAX per 100,000 adults') %>%
+  ggplot(., aes(x = as_date(date), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Episodes of ST-MAX per 100,000 adults')
+
+# Episodes of ST-MAX per 100,000 adults (regions)
+
+t24_final %>%
+  filter(region_name != 'England' & metric == 'Episodes of ST-MAX per 100,000 adults' & is.na(LA_code) & !(region_code %in% c('A', 'D', 'E', 'H', 'J (IL)', 'J (OL)')) & date == max_date) %>%
+  ggplot(., aes(x = reorder(region_name, -value), y = as.numeric(value))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+  coord_flip() +
+  xlab('Regions') +
+  ylab('Episodes of ST_MAX per 100,000 adults')
+
+# Episodes of ST-MAX per 100,000 adults (LA-level)
+
+ggplotly(
+  t24_final %>%
+           filter(region_name != 'England' & metric == 'Episodes of ST-MAX per 100,000 adults' & !is.na(LA_code) & date == max_date) %>%
+           ggplot(., aes(x = reorder(LA_name,  -value), y = as.numeric(value), text = paste0(reorder(LA_name,  -value), ': ', round(value, 2)))) +
+           geom_col(fill = '#F8766D') +
+           theme_minimal() +
+           theme(axis.text.x=element_blank()) +
+           xlab('Local Authorities') +
+           ylab('Episodes of ST-MAX per 100,000 adults')
+         , tooltip = 'text') %>%
+  layout(hoverlabel =list(bgcolor='white', font_color='black'))
+
+
+# Episodes of ST-MAX by what happened next
+
+t21_final %>% 
+  filter(date == max_date & metric_type == 'value' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
+  ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
+  geom_col() +
+  theme_minimal()  +
+  scale_fill_discrete(name = 'What happened after receipt of ST-MAX') +
+  xlab('') +
+  ylab('Number of episodes') +
+  theme(axis.text.x=element_blank())
+
+# Episodes of ST-MAX for new clients by primary support reason
+
+t23_final %>%
+  filter(metric != 'Total' & age_band == 'All ages' & metric_type == 'value' & date == max_date) %>%
+  ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
+  geom_col() +
+  theme_minimal()  +
+  scale_fill_discrete(name = 'Primary support reason') +
+  xlab('') +
+  ylab('Number of episodes') +
+  theme(axis.text.x=element_blank())
+
+
+# Episodes of ST-MAX for new clients by primary support reason and age band
+  t23_final %>%
+    filter(metric != 'Total' & age_band == '18 to 64' & metric_type == 'percentage' & date == max_date) %>%
+  ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
+    geom_col() +
+    theme_minimal()  +
+    scale_fill_discrete(name = 'Primary support reason') +
+    xlab('') +
+    ylab('Percentage of episodes') +
+    theme(axis.text.x=element_blank())
+  
+  t23_final %>%
+    filter(metric != 'Total' & age_band == '65 and over' & metric_type == 'percentage' & date == max_date) %>%
+    ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
+    geom_col() +
+    theme_minimal()  +
+    scale_fill_discrete(name = 'Primary support reason') +
+    xlab('') +
+    ylab('Percentage of episodes') +
+    theme(axis.text.x=element_blank())
 
 ### ASC-OF data
 
@@ -317,6 +634,20 @@ table_2b1 %>%
   geom_line(color = '#F8766D') +
   theme_minimal()
 
+## Proportion of older people still at home 91 days after discharge from hospital into reablement services by region
+
+ggplotly(
+table_2b1 %>%
+  filter(cassr != 'ENGLAND' & variable_type == 'Outcome' & year == max_date) %>%
+  ggplot(., aes(x = reorder(cassr,  -as.numeric(value)), y = as.numeric(value), text = paste0(reorder(cassr,  -as.numeric(value)), ': ', value))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  xlab('Local Authorities') +
+  ylab('Percent still at home after 91 days')
+  , tooltip = 'text') %>%
+ layout(hoverlabel =list(bgcolor='white', font_color='black'))
+
 
 
 ## Table 2B(2): Proportion of older people receiving reablement care following discharge from hospital
@@ -326,6 +657,20 @@ table_2b2 %>%
   geom_line(color = '#F8766D') +
   theme_minimal()
 
+
+## Proportion of older people receiving reablement care following discharge from hospital by LA
+
+ggplotly(
+  table_2b2 %>%
+    filter(cassr != 'ENGLAND' & variable_type == 'Outcome' & year == max_date) %>%
+    ggplot(., aes(x = reorder(cassr,  -as.numeric(value)), y = as.numeric(value), text = paste0(reorder(cassr,  -as.numeric(value)), ': ', round(as.numeric(value), 2)))) +
+    geom_col(fill = '#F8766D') +
+    theme_minimal() +
+    theme(axis.text.x=element_blank()) +
+    xlab('Local Authorities') +
+    ylab('Percent of over 65s receiving reablement on discharge')
+  , tooltip = 'text') %>%
+  layout(hoverlabel =list(bgcolor='white', font_color='black'))
 
 # Prop receiving no or less intense care following reablement
 

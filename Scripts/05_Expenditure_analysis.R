@@ -143,6 +143,14 @@ if (file.exists('Raw_data/NCC_data/NCC_2021-22.xlsx')){print('2021/22 NCC data a
 }
 
 
+# Download deflator
+
+if (file.exists('Raw_data/GDP_deflator.xlsx')){print('GDP deflator already loaded')
+} else{
+  download.file('https://assets.publishing.service.gov.uk/media/651ad0456a423b000df4c6e2/GDP_Deflators_Qtrly_National_Accounts_September_2023_update.xlsx', 'Raw_data/GDP_deflator.xlsx')
+}
+
+
 ##########################################################################
 ################# WRANGLE DATA INTO AMENABLE FORMAT ######################
 ##########################################################################
@@ -235,18 +243,35 @@ NCC_combined$metric[NCC_combined$metric == 'activity1'|NCC_combined$metric == 'n
 
 NCC_combined$date <- ymd(paste0('20', substr(NCC_combined$period, 6,7), '-03-31'))
 
+
+# Wrangle deflator 
+
+deflator <- read_excel('Raw_data/GDP_deflator.xlsx', skip = 6) %>%
+  select(year = 1, deflator = 2)
+
+deflator <- deflator[1:68,]  
+
 ###################################################
 ################### ANALYSIS ######################
 ###################################################
+
+max_date <- max(t32_final$date)
 
 # ASC-FRs
 
 england_ascfr_expenditure <- t32_final %>%
   filter(metric == 'Gross current expenditure' & region_name == 'England') %>%
   mutate(date = as.Date(date)) %>%
-  mutate(value = as.numeric(value)*1000)
+  mutate(value = as.numeric(value)*1000) %>%
+  mutate(deflator_dates = c('2015-16', '2016-17', '2017-18','2018-19', '2019-20', '2020-21', '2021-22')) %>%
+  left_join(., deflator_shortened, by = c('deflator_dates'='year')) %>%
+  mutate(real_expenditure = value/deflator*100)
 
 ggplot(england_ascfr_expenditure, aes(x = date, y = value)) +
+  geom_line(color = '#F8766D') +
+  theme_minimal()
+
+ggplot(england_ascfr_expenditure, aes(x = date, y = real_expenditure)) +
   geom_line(color = '#F8766D') +
   theme_minimal()
 
@@ -261,6 +286,16 @@ t32_final %>%
   ggplot(., aes(x = as.Date(date), y = as.numeric(value*1000))) +
   geom_line(color = '#F8766D') +
   theme_minimal()
+
+t32_final %>%
+filter(region_name != 'England' & metric == 'Expenditure per 100,000 adults' & is.na(LA_code) & date == max_date) %>%
+  ggplot(., aes(x = reorder(region_name,  -value), y = as.numeric(value*1000))) +
+  geom_col(fill = '#F8766D') +
+  theme_minimal() +
+  coord_flip() +
+  xlab('Regions') +
+  ylab('Expenditure on ST-MAX per 100,000 adults')
+
 
 # NCC 
 
@@ -278,12 +313,28 @@ ggplot(data = england_NCC_expenditure_short, aes(x=date, y=expenditure, color = 
   geom_line() +
   theme_minimal()
 
-# Combined
+# unit costs
 
-ggplot(data = england_NCC_expenditure_short, aes(x=date, y=expenditure, color = currency_name))+
+ggplot(data = england_NCC_expenditure_short, aes(x=date, y=national_average_unit_cost, color = currency_name))+
   geom_line() +
   theme_minimal()
 
+# Real terms NCC
 
+deflator_shortened <- deflator[58:68,]
 
+deflator_shortened$deflator <- as.numeric(deflator_shortened$deflator)
+
+real_NCC_expenditure <- england_NCC_expenditure_short %>%
+  left_join(., deflator_shortened, by = c('period'='year')) %>%
+  mutate(real_expenditure = expenditure/deflator*100) %>%
+  mutate(real_unit_cost = national_average_unit_cost/deflator*100)
+
+ggplot(data = real_NCC_expenditure, aes(x=date, y=real_expenditure, color = currency_name))+
+  geom_line() +
+  theme_minimal()
+
+ggplot(data = real_NCC_expenditure, aes(x=date, y=real_unit_cost, color = currency_name))+
+  geom_line() +
+  theme_minimal()
 
