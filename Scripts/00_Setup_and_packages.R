@@ -21,7 +21,8 @@ ifelse(!dir.exists(file.path(here('Outputs/'))), dir.create(file.path(here('Outp
 
 # Sub folders
 
-data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data', 'NCC_data', 'Maps')
+data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data', 'NCC_data', 'Maps', 'Community_Waiting_List_data')
+
 
 lapply(data_subfolders, function(i){
   ifelse(!dir.exists(file.path(here('Raw_data/', i))), dir.create(file.path(here('Raw_data/', i))), print('Directory already exists'))
