@@ -51,7 +51,7 @@ monthly_names <- read_html(acute_sitrep_link) %>%    # Identify which months of 
   tolower() %>%
   as.data.frame() %>%
   rename(months = '.') %>%
-  filter((grepl('daily-discharge', months)) == TRUE)
+  filter((grepl('daily-discharge-sitrep-monthly', months)) == TRUE)
 
 months <- sub(" ", "", word(monthly_names$months, 1, sep = "\\:")) # Create a list of months available on the webpage in the same format as the data download links
   
@@ -64,6 +64,13 @@ data_nodes <- read_html(acute_sitrep_link) %>%  # Extract links to all the datas
 
 time_series_link <- data_nodes$links[grep('timeseries', data_nodes$links)] # Find time series in the list of data nodes
 
+discharge_ready_date_files <- data_nodes$links[grep('Discharge-Ready-Date', data_nodes$links)]  # In October 2023, they included an additional, unlabeled dataset link. This must be removed. 
+
+data_nodes <- data_nodes %>%
+  mutate(drd_remove = case_when(links %in% discharge_ready_date_files ~ 1,
+                                TRUE ~ 0)) %>%
+  filter(drd_remove == 0)
+  
 
 ## Compare the list of available data to the data we already have in our directory
 
