@@ -257,6 +257,11 @@ deflator <- deflator[1:68,]
 
 max_date <- max(t32_final$date)
 
+deflator_shortened <- deflator[58:68,]
+
+deflator_shortened$deflator <- as.numeric(deflator_shortened$deflator)
+
+
 # ASC-FRs
 
 england_ascfr_expenditure <- t32_final %>%
@@ -321,9 +326,6 @@ ggplot(data = england_NCC_expenditure_short, aes(x=date, y=national_average_unit
 
 # Real terms NCC
 
-deflator_shortened <- deflator[58:68,]
-
-deflator_shortened$deflator <- as.numeric(deflator_shortened$deflator)
 
 real_NCC_expenditure <- england_NCC_expenditure_short %>%
   left_join(., deflator_shortened, by = c('period'='year')) %>%
@@ -336,5 +338,17 @@ ggplot(data = real_NCC_expenditure, aes(x=date, y=real_expenditure, color = curr
 
 ggplot(data = real_NCC_expenditure, aes(x=date, y=real_unit_cost, color = currency_name))+
   geom_line() +
-  theme_minimal()
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Unit Cost')
+
+
+ggplot()+
+  geom_line(data = real_NCC_expenditure, aes(x=date, y=real_expenditure, color = currency_name)) +
+  geom_line(data = england_ascfr_expenditure, aes(x = date, y = real_expenditure, color = 'ST-MAX (Local Authorities)')) +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Expenditure') +
+  theme(legend.text = element_text(size = 11))
+ 
 

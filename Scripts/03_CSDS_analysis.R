@@ -252,6 +252,27 @@ csds_IC_all %>%
   xlab('Date') +
   ylab('Care Contacts')
 
+
+csds_IC_all %>%
+  filter(measure %in% c(18, 51, 52, 53) & org_level == 'All Submitters' & ymd(reporting_period_start) > '2022-08-01') %>%
+  group_by(measure, measure_desc) %>%
+  summarise(measure_value = sum(measure_value)) %>%
+  ggplot(., aes(x = measure_desc, y = measure_value, fill = measure_desc)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  xlab('Service') +
+  ylab('Care Contacts') +
+  theme(legend.position = 'none') +
+  scale_y_continuous(labels = scales::comma)
+
+chart_table <- csds_IC_all %>%
+  filter(measure %in% c(18, 51, 52, 53) & org_level == 'All Submitters' & ymd(reporting_period_start) > '2022-08-01') %>%
+  group_by(measure, measure_desc) %>%
+  summarise(measure_value = sum(measure_value))
+
+sum(chart_table$measure_value)
+
 # The enormous spike in Crisis response IC in July 2021 is due to the South Warwickshire trust beginning to report this service.
 # Their reporting of the service declines rapidly over the following months, but not immediately - why? Initially, a drop is also 
 # seen in their 'Intermediate care service' figure in July 2021, implying a portion of that related to crisis response IC prior to their separate reporting of it. 

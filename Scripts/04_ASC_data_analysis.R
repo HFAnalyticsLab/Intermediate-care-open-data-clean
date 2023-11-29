@@ -591,6 +591,18 @@ t21_final %>%
   ylab('Number of episodes') +
   theme(axis.text.x=element_blank())
 
+# Episodes of ST-MAX by what happened next (percentage)
+
+t21_final %>% 
+  filter(date == max_date & metric_type == 'percentage' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
+  ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
+  geom_col() +
+  theme_minimal()  +
+  scale_fill_discrete(name = 'What happened after receipt of ST-MAX') +
+  xlab('') +
+  ylab('% of episodes') +
+  theme(axis.text.x=element_blank())
+
 # Episodes of ST-MAX for new clients by primary support reason
 
 t23_final %>%
@@ -625,6 +637,30 @@ t23_final %>%
     ylab('Percentage of episodes') +
     theme(axis.text.x=element_blank())
 
+# Episodes of ST-MAX for new clients by primary support reason and age band (combined, number)  
+  t23_final %>%
+    filter(metric != 'Total' & metric_type == 'value' & date == max_date & age_band != 'All ages') %>%
+    ggplot(., aes(x = reorder(metric, value), y = value, fill = age_band)) +
+    geom_bar(position="dodge", stat="identity") +
+    theme_minimal()  +
+    coord_flip() +
+    scale_fill_discrete(name = 'Primary support reason') +
+    xlab('') +
+    ylab('Number of episodes') +
+    scale_fill_discrete(name = "Age band")
+  
+  # Episodes of ST-MAX for new clients by primary support reason and age band (combined, percentage)  
+  t23_final %>%
+    filter(metric != 'Total' & metric_type == 'percentage' & date == max_date & age_band != 'All ages') %>%
+    ggplot(., aes(x = reorder(metric, value), y = value, fill = age_band)) +
+    geom_bar(position="dodge", stat="identity") +
+    theme_minimal()  +
+    coord_flip() +
+    scale_fill_discrete(name = 'Primary support reason') +
+    xlab('') +
+    ylab('% of episodes') +
+    scale_fill_discrete(name = "Age band")
+  
 ### ASC-OF data
 
 ## Table 2B(1): Proportion of older people still at home 91 days after discharge from hospital into reablement services
@@ -655,8 +691,17 @@ table_2b2 %>%
   filter(cassr == 'ENGLAND' & variable_type == 'Outcome') %>%
   ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
   geom_line(color = '#F8766D') +
-  theme_minimal()
+  theme_minimal() +
+  xlab('Date') +
+  ylab('% of older people receiving reablement care')
 
+table_2b2 %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Numerator') %>%
+  ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
+  geom_line(color = '#F8766D') +
+  theme_minimal() +
+  xlab('Date') +
+  ylab('Number of older people receiving reablement care')
 
 ## Proportion of older people receiving reablement care following discharge from hospital by LA
 
