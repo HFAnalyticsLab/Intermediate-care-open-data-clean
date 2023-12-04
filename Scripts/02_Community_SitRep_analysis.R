@@ -19,7 +19,7 @@
 rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if ('rvest' %in% .packages()) {
+if ('rvest' %in% .packages() & dir.exists(file.path(here('Raw_data/NCC_data')))) {
   print('Project setup run')
 }else{
   source('Scripts/00_Setup_and_packages.R')}
@@ -212,7 +212,7 @@ import_sheets_function <- function(file_name, table, level){
   
 }
 
-test <- import_sheets_function(file_name = import_list[4], table = 'Table 4', level = 'Region')
+
 
 
 # Import all available months for both relevant tables at ICB and trust level
@@ -231,7 +231,7 @@ table4_region <- lapply(table4_region, function(df){
   df <- df %>%
     mutate(Org_name = Region) %>%
     mutate(Org_code = Region) %>%
-    select(Region, Org_code, Org_name, 2:13)
+    select(Region, Org_code, Org_name, 2:(length(df)))
   return(df)
 })
 
@@ -240,7 +240,7 @@ table5_region <- lapply(table5_region, function(df){
   df <- df %>%
     mutate(Org_name = Region) %>%
     mutate(Org_code = Region) %>%
-    select(Region, Org_code, Org_name, 2:19)
+    select(Region, Org_code, Org_name, 2:(length(df)))
   return(df)
 })
 
@@ -278,17 +278,17 @@ all_months_combined <- lapply(1:length(all_tables_pivoted), function(i){
 # Create individual dataframes for each table/level combo, including variable for separating out pathways
 
 region_discharges_by_destination <- all_months_combined[[1]] %>%
-  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
-                             grepl('P1', metric) == TRUE ~ 'P1',
-                             grepl('P2', metric) == TRUE ~ 'P2',
-                             grepl('P3', metric) == TRUE ~ 'P3',
+  mutate(pathway = case_when((grepl('P0', metric)|(grepl('Pathway 0', metric))) == TRUE ~ 'P0',
+                             (grepl('P1', metric)|(grepl('Pathway 1', metric))) == TRUE ~ 'P1',
+                             (grepl('P2', metric)|(grepl('Pathway 2', metric))) == TRUE ~ 'P2',
+                             (grepl('P3', metric)|(grepl('Pathway 3', metric))) == TRUE ~ 'P3',
                              TRUE ~ 'Other'))
 
 ICB_discharges_by_destination <- all_months_combined[[2]] %>%
-  mutate(pathway = case_when(grepl('P0', metric) == TRUE ~ 'P0',
-                             grepl('P1', metric) == TRUE ~ 'P1',
-                             grepl('P2', metric) == TRUE ~ 'P2',
-                             grepl('P3', metric) == TRUE ~ 'P3',
+  mutate(pathway = case_when((grepl('P0', metric)|(grepl('Pathway 0', metric))) == TRUE ~ 'P0',
+                             (grepl('P1', metric)|(grepl('Pathway 1', metric))) == TRUE ~ 'P1',
+                             (grepl('P2', metric)|(grepl('Pathway 2', metric))) == TRUE ~ 'P2',
+                             (grepl('P3', metric)|(grepl('Pathway 3', metric))) == TRUE ~ 'P3',
                              TRUE ~ 'Other'))
 
 region_delayed_discharges_by_reason <- all_months_combined[[3]]

@@ -27,7 +27,7 @@
 rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if ('rvest' %in% .packages()) {
+if ('rvest' %in% .packages() & dir.exists(file.path(here('Raw_data/NCC_data')))) {
   print('Project setup run')
 }else{
   source('Scripts/00_Setup_and_packages.R')}
@@ -153,10 +153,10 @@ import_sheets_function <- function(file_name, table, level){
     
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-', col_names = FALSE)
     
-  } else if(level == 'Region' & table == 'Table 4' & !(file_name %in% c('september2023.xlsx'))){
+  } else if(level == 'Region' & table == 'Table 4' & !(file_name %in% c('september2023.xlsx', 'october2023.xlsx'))){
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 6, na = '-', n_max = 8, col_names = FALSE)
     
-  } else if ((level == 'Region' & table == 'Table 5') | (table == 'Table 4' & file_name %in% c('september2023.xlsx') & level == 'Region')){
+  } else if ((level == 'Region' & table == 'Table 5') | (table == 'Table 4' & file_name %in% c('september2023.xlsx', 'october2023.xlsx') & level == 'Region')){
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, na = '-', n_max = 8, col_names = FALSE)
     
   } else {print('Error')}
