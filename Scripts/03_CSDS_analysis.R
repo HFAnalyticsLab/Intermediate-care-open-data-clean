@@ -24,7 +24,7 @@
 rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if ('rvest' %in% .packages()) { 
+if ('rvest' %in% .packages() & dir.exists(file.path(here('Raw_data/NCC_data')))) { 
   print('Project setup run')   
 }else{
   source('Scripts/00_Setup_and_packages.R')
@@ -179,6 +179,7 @@ refreshed_current_files <- list.files(here('Raw_data/CSDS_data'), pattern='csv')
 print(refreshed_current_files)
 
 all_csds_csv_byprovider <- lapply(1:length(refreshed_current_files), function(i){
+  
   csv <- read_csv(paste0('Raw_data/CSDS_data/', refreshed_current_files[[i]]))
   
   names(csv) <- tolower(names(csv))
@@ -225,10 +226,12 @@ csds_IC_all <- do.call('rbind', csds_provider_IConly)
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-04-20'] <- '2022-04-01' # The date formatting changed from dashes to slashes in these months - R reads only the first two digits of the year in an attempt to parse them
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-05-20'] <- '2022-05-01' # In the same format as the other dates. This is fixed here 
 csds_IC_all$reporting_period_start[csds_IC_all$reporting_period_start == '1-06-20'] <- '2022-06-01'
-
+  
 #####################################################
 ################ ANALYZE DATA #######################
 #####################################################
+
+
 
 # NOTE: We seem to see a transition from submitters recording IC in the Intermediate care service measure to the specific categories over time, creating a false appearance of 
 # decline in that measure and growth in the others. Maybe we need to sum these? Truncate the time series?
@@ -248,6 +251,27 @@ csds_IC_all %>%
   theme_minimal() +
   xlab('Date') +
   ylab('Care Contacts')
+
+
+csds_IC_all %>%
+  filter(measure %in% c(18, 51, 52, 53) & org_level == 'All Submitters' & ymd(reporting_period_start) > '2022-08-01') %>%
+  group_by(measure, measure_desc) %>%
+  summarise(measure_value = sum(measure_value)) %>%
+  ggplot(., aes(x = measure_desc, y = measure_value, fill = measure_desc)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  xlab('Service') +
+  ylab('Care Contacts') +
+  theme(legend.position = 'none') +
+  scale_y_continuous(labels = scales::comma)
+
+chart_table <- csds_IC_all %>%
+  filter(measure %in% c(18, 51, 52, 53) & org_level == 'All Submitters' & ymd(reporting_period_start) > '2022-08-01') %>%
+  group_by(measure, measure_desc) %>%
+  summarise(measure_value = sum(measure_value))
+
+sum(chart_table$measure_value)
 
 # The enormous spike in Crisis response IC in July 2021 is due to the South Warwickshire trust beginning to report this service.
 # Their reporting of the service declines rapidly over the following months, but not immediately - why? Initially, a drop is also 

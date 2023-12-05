@@ -1,6 +1,6 @@
 ## Install and load packages
 
-packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate', 'data.table', 'plotly', 'sf')
+packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate', 'data.table', 'plotly', 'sf', 'scales')
 
 installed_packages <- packages %in% row.names(installed.packages())
 
@@ -21,8 +21,8 @@ ifelse(!dir.exists(file.path(here('Outputs/'))), dir.create(file.path(here('Outp
 
 # Sub folders
 
+data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data', 'NCC_data', 'Maps', 'Community_Waiting_List_data')
 
-data_subfolders <- c('Acute_SitRep_data', 'Community_SitRep_data', 'CSDS_data', 'ASC_data', 'Maps', 'Community_Waiting_List_data')
 
 lapply(data_subfolders, function(i){
   ifelse(!dir.exists(file.path(here('Raw_data/', i))), dir.create(file.path(here('Raw_data/', i))), print('Directory already exists'))
@@ -41,7 +41,15 @@ if (file.exists('Raw_data/Maps/ICB_map.geojson')){
   download.file(ICB_map_link, destfile = 'Raw_data/Maps/ICB_map.geojson')
 }
 
+# Regional map
 
+region_map_link <- 'https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Regions_December_2022_Boundaries_EN_BFC_V2/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson'
+
+if (file.exists('Raw_data/Maps/Region_map.geojson')){
+  print('Region map already downloaded.')
+} else {
+  download.file(region_map_link, destfile = 'Raw_data/Maps/Region_map.geojson')
+}
 
 # Local Authority map
 
