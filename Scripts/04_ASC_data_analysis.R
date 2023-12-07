@@ -69,19 +69,19 @@ if (file.exists('Raw_data/ASC_data/ASCFR_2021-22.xlsx')){print('2021/22 ASCFR da
 download.file('https://files.digital.nhs.uk/AF/4C9A4F/ASCFR%20and%20SALT%20Data%20Tables%202021-22.xlsx', 'Raw_data/ASC_data/ASCFR_2021-22.xlsx')
 }
 
-# 2022/23
+ #2022/23
 
-#if (file.exists('Raw_data/ASC_data/ASCFR_2022-23.xlsx')){print('2022/23 ASCFR data already loaded')
-#} else{
-#  download.file('https://files.digital.nhs.uk/99/CE12BB/ASCFR%20and%20SALT%20Data%20Tables%202022-23.xlsx', 'Raw_data/ASC_data/ASCFR_2022-23.xlsx')
-#}
+if (file.exists('Raw_data/ASC_data/ASCFR_2022-23.xlsx')){print('2022/23 ASCFR data already loaded')
+} else{
+  download.file('https://files.digital.nhs.uk/03/C96CF8/ASCFR%20and%20SALT%20Data%20Tables%202022-23%20v2.xlsx', 'Raw_data/ASC_data/ASCFR_2022-23.xlsx')
+}
 
 ### DOWNLOAD ASCOF DATA
 
 
 if (file.exists('Raw_data/ASC_data/ASCOF-time-series.xlsx')){print('ASCOF time series data already loaded')
 } else{
-download.file('https://files.digital.nhs.uk/FE/612651/meas-from-asc-of-eng-2021-22-time-sers-anx-v2.xlsx', 'Raw_data/ASC_data/ASCOF-time-series.xlsx')
+download.file('https://files.digital.nhs.uk/EE/17E313/meas-from-asc-of-eng-2022-23-timeseries.xlsx', 'Raw_data/ASC_data/ASCOF-time-series.xlsx')
 }
 
 
@@ -97,11 +97,14 @@ ascfr_data <- list.files('Raw_data/ASC_data', pattern='xlsx')
 
 ascfr_data <- ascfr_data[!ascfr_data %in% c('ASCOF-time-series.xlsx')]
 
+
 t21_all <- lapply(ascfr_data, function(i){
   
   if (i == 'ASCFR_2016-17.xlsx') {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T16', skip = 7, col_names = FALSE)
-  }else {
+  } else if(i == 'ASCFR_2022-23.xlsx'){ 
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 6, col_names = FALSE)
+    } else {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T21', skip = 8, col_names = FALSE) 
   }
   
@@ -140,9 +143,12 @@ t21_all <- lapply(ascfr_data, function(i){
 t24_all <- lapply(ascfr_data, function(i){
   if  (i == 'ASCFR_2016-17.xlsx'){
     
-  } else {
+  } else if(i == 'ASCFR_2022-23.xlsx'){ 
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 6, col_names = FALSE)
+    }else {
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE) }
   
-  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE)
+  if  (i != 'ASCFR_2016-17.xlsx'){
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Episodes of ST-MAX per 100,000 adults', 'Episodes of ST-MAX',
                  'Population')
@@ -164,15 +170,18 @@ t24_all <- lapply(ascfr_data, function(i){
   
 }})      # Number of episodes for new clients per 100,000 adults
 
-t24_all <- t24_all[2:6]
+t24_all <- t24_all[2:7]
 
 t27_all <- lapply(ascfr_data, function(i){
   
   if (i == 'ASCFR_2016-17.xlsx') {
     
-  }else {
-    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T27', skip = 8, col_names = FALSE) 
+  } else if(i == 'ASCFR_2022-23.xlsx'){ 
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T27', skip = 6, col_names = FALSE)
+  } else {
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T27', skip = 8, col_names = FALSE) }
     
+  if (i != 'ASCFR_2016-17.xlsx') {
     
     names(df) <- c('age_band', 'region_code', 'region_name', 'Early Cessation of Service, NHS-funded, deceased',
                    'Early Cessation of Service, not leading to long term support',  'Early Cessation of Service, leading to long term support', 'Move to nursing care (from community)',
@@ -200,15 +209,18 @@ t27_all <- lapply(ascfr_data, function(i){
     
   }}) 
 
-t27_all <- t27_all[2:6]
+t27_all <- t27_all[2:7]
 
 t28_all <- lapply(ascfr_data, function(i){
   
   if  (i == 'ASCFR_2016-17.xlsx'){
-    
-  } else {
+  } else if(i == 'ASCFR_2022-23.xlsx'){ 
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 7, col_names = FALSE)
+  }else {
   
-  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE)
+  df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T28', skip = 9, col_names = FALSE) }
+  
+  if (i != 'ASCFR_2016-17.xlsx') {
   
   names(df) <- c('LA_code', 'area_code', 'LA_name', 'region_code', 'region_name', 'Completed episodes of ST-Max per client: 18-64', 'Completed episodes of ST-Max: 18-64', 'Clients: 18-64',
                  'Completed episodes of ST-Max per client: 65+', 'Completed episodes of ST-Max: 65+', 'Clients: 65+',
@@ -233,15 +245,15 @@ t28_all <- lapply(ascfr_data, function(i){
   return(df)
 }})    # Number of episodes per client by age band, all clients
 
-t28_all <- t28_all[2:6]
+t28_all <- t28_all[2:7]
 
 ascfr_tables <- list(t24_all, t27_all, t28_all)
 
-ascfr_FYs_all <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascfr_FYs_all <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31', '2023-03-31')
 
-ascfr_FYs_short <- c('2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascfr_FYs_short <- c('2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31', '2023-03-31')
 
-for (x in 1:6){
+for (x in 1:7){
  t21_all[[x]] <- t21_all[[x]] %>%
     mutate(date = ascfr_FYs_all[[x]])
 }
@@ -249,7 +261,7 @@ for (x in 1:6){
 t21_final <- do.call('rbind', t21_all)
 
 for (i in 1:3){
-  for (x in 1:5){
+  for (x in 1:6){
     ascfr_tables[[i]][[x]] <- ascfr_tables[[i]][[x]] %>%
       mutate(date = ascfr_FYs_short[[x]])
   }
@@ -271,7 +283,9 @@ t23_all <- lapply(ascfr_data, function(i){
   
   if (i == 'ASCFR_2016-17.xlsx') {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T17', skip = 8, col_names = FALSE)
-  }else {
+  } else if(i == 'ASCFR_2022-23.xlsx'){ 
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 6, col_names = FALSE)
+  } else {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T23', skip = 8, col_names = FALSE) 
   }
   
@@ -315,7 +329,7 @@ t23_all <- lapply(ascfr_data, function(i){
  
 })
 
-for (x in 1:6){
+for (x in 1:7){
   t23_all[[x]] <- t23_all[[x]] %>%
     mutate(date = ascfr_FYs_all[[x]])
 }
@@ -327,7 +341,10 @@ t25_26_all <- lapply(ascfr_data, function(i){
   if (i == 'ASCFR_2016-17.xlsx') {
     df1 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T18', skip = 6, col_names = FALSE)
     df2 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T19', skip = 6, col_names = FALSE)
-  }else {
+  } else if (i == 'ASCFR_2022-23.xlsx') {
+    df1 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T25', skip = 6, col_names = FALSE) 
+    df2 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T26', skip = 6, col_names = FALSE)
+  } else {
     df1 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T25', skip = 8, col_names = FALSE) 
     df2 <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T26', skip = 8, col_names = FALSE)
   }
@@ -356,7 +373,7 @@ t25_26_all <- lapply(ascfr_data, function(i){
   
 })  # Number of completed episodes by primary support reason for existing clients, by age band
 
-for (x in 1:6){
+for (x in 1:7){
   t25_26_all[[x]] <- t25_26_all[[x]] %>%
     mutate(date = ascfr_FYs_all[[x]])
 }
@@ -374,7 +391,7 @@ t25_26_final <- do.call('rbind', t25_26_all)
 ## Table 2D: Proportion of new short-term service users who no further support or support at a lower level
 
 
-ascof_FYs <- c('2015-03-31', '2016-03-31', '2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascof_FYs <- c('2016-03-31', '2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31', '2023-03-31')
 
 variable_types <- c('Numerator', 'Denominator', 'Outcome')
 
@@ -398,7 +415,7 @@ for (i in c(1:length(initial_labels))){
   colnames_2b1 <- c(colnames_2b1, item)
 }
 
-table_2b1 <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2B(1)', skip = 6, col_names = FALSE, n_max = 157)
+table_2b1 <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2B(1)', skip = 6, col_names = FALSE, n_max = 172)
 
 names(table_2b1) <- colnames_2b1
 
@@ -418,7 +435,7 @@ for (i in c(1:length(initial_labels))){
   colnames_2b2 <- c(colnames_2b2, item)
 }
 
-table_2b2 <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2B(2)', skip = 6, col_names = FALSE, n_max = 157)
+table_2b2 <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2B(2)', skip = 6, col_names = FALSE, n_max = 172)
 
 names(table_2b2) <- colnames_2b2
 
@@ -438,7 +455,7 @@ for (i in c(1:length(initial_labels))){
   colnames_2d <- c(colnames_2d, item)
 }
 
-table_2d <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2D', skip = 6, col_names = FALSE, n_max = 157)
+table_2d <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2D', skip = 6, col_names = FALSE, n_max = 172)
 
 names(table_2d) <- colnames_2d
 
@@ -461,7 +478,7 @@ region_map <- read_sf('Raw_data/Maps/Region_map.geojson')
 # Number of episodes
 
 t28_final %>%
-  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max' & age_band == 'Total')  # Compute percentage decline during COVID here
+  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max' & age_band == 'Total') %>%
   ggplot(., aes(x = as_date(date), y = as.numeric(value))) +
   geom_line(color = '#F8766D') +
   theme_minimal() +
@@ -509,7 +526,7 @@ t28_final %>%
 # Episodes of ST-MAX per client by age band
 
 t28_final %>%
-  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max per client' & is.na(LA_code) & date == max_date & age_band != 'Total')
+  filter(region_name == 'England' & metric == 'Completed episodes of ST-Max per client' & is.na(LA_code) & date == max_date & age_band != 'Total') %>%
 
   ggplot(., aes(x = reorder(age_band,  -value), y = as.numeric(value))) +
   geom_col(fill = '#F8766D') +
@@ -704,6 +721,10 @@ table_2b2 %>%
   ylab('Number of older people receiving reablement care')
 
 ## Proportion of older people receiving reablement care following discharge from hospital by LA
+
+
+table_2b2 %>%
+  filter(cassr != 'ENGLAND' & variable_type == 'Outcome' & year == max_date)
 
 ggplotly(
   table_2b2 %>%
