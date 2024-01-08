@@ -65,7 +65,12 @@ if (file.exists('Raw_data/ASC_data/ASCFR_2021-22.xlsx')){print('2021/22 ASCFR da
   download.file('https://files.digital.nhs.uk/AF/4C9A4F/ASCFR%20and%20SALT%20Data%20Tables%202021-22.xlsx', 'Raw_data/ASC_data/ASCFR_2021-22.xlsx')
 }
 
+#2022/23
 
+if (file.exists('Raw_data/ASC_data/ASCFR_2022-23.xlsx')){print('2022/23 ASCFR data already loaded')
+} else{
+  download.file('https://files.digital.nhs.uk/03/C96CF8/ASCFR%20and%20SALT%20Data%20Tables%202022-23%20v2.xlsx', 'Raw_data/ASC_data/ASCFR_2022-23.xlsx')
+}
 
 ### DOWNLOAD NATIONAL COST COLLECTION DATA
 
@@ -166,6 +171,8 @@ t32_all <- lapply(ascfr_data, function(i){
   
   if(i=='ASCFR_2016-17.xlsx'){
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T24', skip = 8, col_names = FALSE)
+  } else if(i=='ASCFR_2022-23.xlsx'){
+    df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T32', skip = 7, col_names = FALSE)
   } else {
     df <- read_excel(paste0('Raw_data/ASC_data/', i), sheet = 'T32', skip = 9, col_names = FALSE) 
   }
@@ -193,10 +200,10 @@ t32_all <- lapply(ascfr_data, function(i){
   
 })
 
-ascfr_FYs <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31')
+ascfr_FYs <- c('2017-03-31', '2018-03-31', '2019-03-31', '2020-03-31', '2021-03-31', '2022-03-31', '2023-03-31')
 
 
-for (x in 1:6){
+for (x in 1:7){
   t32_all[[x]] <- t32_all[[x]] %>%
       mutate(date = ascfr_FYs[[x]])
   }
@@ -268,17 +275,31 @@ england_ascfr_expenditure <- t32_final %>%
   filter(metric == 'Gross current expenditure' & region_name == 'England') %>%
   mutate(date = as.Date(date)) %>%
   mutate(value = as.numeric(value)*1000) %>%
-  mutate(deflator_dates = c('2015-16', '2016-17', '2017-18','2018-19', '2019-20', '2020-21', '2021-22')) %>%
+  mutate(deflator_dates = c('2015-16', '2016-17', '2017-18','2018-19', '2019-20', '2020-21', '2021-22', '2022-23')) %>%
   left_join(., deflator_shortened, by = c('deflator_dates'='year')) %>%
   mutate(real_expenditure = value/deflator*100)
 
+england_ascfr_expenditure$episodes <- c(NA, NA, 246035, 255275, 261605, 246600, 252150, 251255)
+
+england_ascfr_expenditure <- england_ascfr_expenditure %>%
+  mutate(spend_per_episode = value/episodes) %>%
+  mutate(real_spend_per_episode = real_expenditure/episodes)
+  
 ggplot(england_ascfr_expenditure, aes(x = date, y = value)) +
   geom_line(color = '#F8766D') +
   theme_minimal()
 
 ggplot(england_ascfr_expenditure, aes(x = date, y = real_expenditure)) +
   geom_line(color = '#F8766D') +
-  theme_minimal()
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) 
+
+england_ascfr_expenditure$real_expenditure[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_expenditure[england_ascfr_expenditure$date == '2022-03-31']-1
+england_ascfr_expenditure$real_expenditure[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_expenditure[england_ascfr_expenditure$date == '2021-03-31']-1
+
+england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2022-03-31']-1
+england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2021-03-31']-1
+
 
 t32_final %>%
   filter(metric == 'Expenditure per 100,000 adults' & region_name == 'England') %>%
@@ -293,7 +314,7 @@ t32_final %>%
   theme_minimal()
 
 t32_final %>%
-filter(region_name != 'England' & metric == 'Expenditure per 100,000 adults' & is.na(LA_code) & date == max_date) %>%
+filter(region_name == 'England' & metric == 'Expenditure per 100,000 adults' & is.na(LA_code))
   ggplot(., aes(x = reorder(region_name,  -value), y = as.numeric(value*1000))) +
   geom_col(fill = '#F8766D') +
   theme_minimal() +

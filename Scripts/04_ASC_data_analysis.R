@@ -473,6 +473,22 @@ max_date <- max(t21_final$date)
 
 region_map <- read_sf('Raw_data/Maps/Region_map.geojson')
 
+
+# Isolate LA populations
+
+LA_populations <- t24_final %>%
+  filter((!is.na(LA_code)|region_name == 'England') & metric == 'Population' & date == max_date)
+
+LA_populations$LA_name[LA_populations$region_name == 'England'] <- 'England'
+
+over_65_pops <- read_excel('Raw_data/ASC_data/ASCOF-time-series.xlsx', sheet = '2A(2)', skip = 6, col_names = FALSE, n_max = 172) %>%
+  select(LA_name = 2, over_65_pop = 26)
+
+LA_populations <- LA_populations %>%
+  left_join(., over_65_pops, by='LA_name')
+
+LA_populations$over_65_pop <- as.numeric(LA_populations$over_65_pop)
+
 ### ASC-FR DATA
 
 # Number of episodes
@@ -500,7 +516,7 @@ t28_final %>%
 # Number of episodes by region and age band
   
 t28_final %>%
-    filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & is.na(LA_code) & date == max_date & age_band != 'Total')
+    filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & is.na(LA_code) & date == max_date & age_band != 'Total') %>%
     ggplot(., aes(x = reorder(region_name,  -value), y = as.numeric(value), fill = age_band)) +
     geom_col() +
     theme_minimal() +
@@ -560,6 +576,21 @@ ggplotly(
   , tooltip = 'text') %>%
   layout(hoverlabel =list(bgcolor='white', font_color='black'))
 
+
+# Episodes of ST-MAX per client by LA
+
+ggplotly(
+  t28_final %>%
+    filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & age_band == '65+' & !is.na(LA_code) & date == max_date) %>%
+    ggplot(., aes(x = reorder(LA_name,  -value), y = as.numeric(value), text = paste0(reorder(LA_name,  -value), ': ', round(value, 2)))) +
+    geom_col(fill = '#F8766D') +
+    theme_minimal() +
+    theme(axis.text.x=element_blank()) +
+    xlab('Local Authorities') +
+    ylab('Episodes of ST_MAX, 65+')
+  , tooltip = 'text') %>%
+  layout(hoverlabel =list(bgcolor='white', font_color='black'))
+
 # Episodes of ST-MAX per 100,000 adults (Total)
 
 t24_final %>%
@@ -596,10 +627,69 @@ ggplotly(
   layout(hoverlabel =list(bgcolor='white', font_color='black'))
 
 
+# Episodes of ST-MAX per 100,000 over 65s by LA
+
+t24_final %>%
+  filter(region_name != 'England' & metric == 'Episodes of ST-MAX per 100,000 adults' & !is.na(LA_code) & date == max_date) %>%
+  full_join(., LA_populations, by = 'LA_code') %>%
+  select(LA_code, LA_name = LA_name.x,  episodes = value.x, over_65_pop, population = value.y) %>%
+  mutate(per_cap = episodes/as.numeric(over_65_pop)) %>%
+  mutate(per_cap_65s = over_65_pop/population)
+  filter(LA_name != 'England') %>%
+  ggplot(., aes(x = as.numeric(per_cap_65s), y = episodes)) +
+  geom_point(color = '#F8766D') +
+  theme_minimal()
+
+  
+# Episodes of over-65 ST-MAX per 100 over 65s by LA
+  
+ ggplotly(
+   
+   t28_final %>%
+    filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & !is.na(LA_code) & date == max_date & age_band == '65+') %>% 
+    full_join(., LA_populations, by = 'LA_code') %>%
+    select(LA_code, LA_name = LA_name.x,  episodes_over65 = value.x, over_65_pop, population = value.y) %>%
+    mutate(per_cap =  episodes_over65/as.numeric(over_65_pop)*1000) %>%
+  filter(LA_name != 'England') %>%
+    ggplot(., aes(x = reorder(LA_name,  -per_cap), y = as.numeric(per_cap), text = paste0(reorder(LA_name,  -per_cap), ': ', round(per_cap, 2)))) +
+    geom_col(fill = '#F8766D') +
+    theme_minimal() +
+    ylab('Episodes per 1000 people over 65') +
+    xlab('Local Authorities') +
+     theme(axis.text.x=element_blank())
+  
+  , tooltip = 'text'
+    ) %>%
+   layout(hoverlabel =list(bgcolor='white', font_color='black'))
+  
+ 
+ # Episodes of 18-64s ST-MAX per 100 18-64s by LA
+ 
+  ggplotly(
+   
+   t28_final %>%
+            filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & !is.na(LA_code) & date == max_date & age_band == '18-64')  %>%
+            full_join(., LA_populations, by = 'LA_code') %>%
+            select(LA_code, LA_name = LA_name.x,  episodes_wa = value.x, over_65_pop, population = value.y) %>%
+            mutate(working_adults = population - over_65_pop) %>%
+            mutate(per_cap =  episodes_wa/as.numeric(working_adults)*1000) %>%
+            filter(LA_name != 'England') %>%
+            ggplot(., aes(x = reorder(LA_name,  -per_cap), y = as.numeric(per_cap), text = paste0(reorder(LA_name,  -per_cap), ': ', round(per_cap, 2)))) +
+            geom_col(fill = '#F8766D') +
+            theme_minimal() +
+     ylab('Episodes per 1000 working age adults') +
+     xlab('Local Authorities') +
+     theme(axis.text.x=element_blank())
+   
+          , tooltip = 'text'
+  ) %>%
+    layout(hoverlabel =list(bgcolor='white', font_color='black'))
+ 
+
 # Episodes of ST-MAX by what happened next
 
 t21_final %>% 
-  filter(date == max_date & metric_type == 'value' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
+  filter(date == max_date & metric_type == 'value' & region_name == 'England' & age_band == 'All ages' & metric != 'Total')
   ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
   geom_col() +
   theme_minimal()  +
@@ -611,7 +701,7 @@ t21_final %>%
 # Episodes of ST-MAX by what happened next (percentage)
 
 t21_final %>% 
-  filter(date == max_date & metric_type == 'percentage' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
+  filter(date == max_date & metric_type == 'percentage' & region_name == 'England' & age_band == 'All ages' & metric != 'Total')
   ggplot(., aes(x = reorder(metric, -value), y = value, fill = reorder(metric, -value))) +
   geom_col() +
   theme_minimal()  +
@@ -669,11 +759,10 @@ t23_final %>%
   # Episodes of ST-MAX for new clients by primary support reason and age band (combined, percentage)  
   t23_final %>%
     filter(metric != 'Total' & metric_type == 'percentage' & date == max_date & age_band != 'All ages') %>%
-    ggplot(., aes(x = reorder(metric, value), y = value, fill = age_band)) +
+    ggplot(., aes(x = reorder(metric, value), y = value*100, fill = age_band)) +
     geom_bar(position="dodge", stat="identity") +
     theme_minimal()  +
     coord_flip() +
-    scale_fill_discrete(name = 'Primary support reason') +
     xlab('') +
     ylab('% of episodes') +
     scale_fill_discrete(name = "Age band")
@@ -744,12 +833,63 @@ table_2d %>%
   filter(cassr == 'ENGLAND' & variable_type == 'Outcome') %>%
   ggplot(., aes(x = as_date(year), y = as.numeric(value))) +
   geom_line(color = '#F8766D') +
-  theme_minimal()
+  theme_minimal() +
+  ylab('% of service users') +
+  xlab('Year')
   
 
+# Proportion of older people receiving ST-MAX, and prop of them receiving reablement
+
+numb_reablement <- table_2b2 %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Numerator') %>%
+  select(date = year, numb_reablement = value)
+
+numb_reablement$numb_reablement <- as.numeric(numb_reablement$numb_reablement)
+
+t28_final %>%
+  filter(region_name == 'England' & metric == 'Clients' & age_band == '65+') %>%
+  left_join(., numb_reablement, by = 'date') %>%
+  select(date, clients_ov65 = value, numb_reablement) %>%
+  pivot_longer(2:3, names_to = 'metric', values_to = 'value') %>%
+  ggplot(., aes(x = as_date(date), y = value, fill = as.factor(metric))) +
+  geom_area() +
+  xlab('Year') +
+  ylab('Clients over 65 years of age') +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_discrete(name = '', labels = c('Total receiving intermediate care', 'Receiving reabelement after hospital discharge'))
+  
+  
+## OUTPUT TABLES
 
 
 
+# Figure 5: total receiving IC/reablement after discharge
 
+numb_reablement <- table_2b2 %>%
+  filter(cassr == 'ENGLAND' & variable_type == 'Numerator') %>%
+  select(date = year, numb_reablement = value)
 
+numb_reablement$numb_reablement <- as.numeric(numb_reablement$numb_reablement)
 
+output_figure5 <- t28_final %>%
+  filter(region_name == 'England' & metric == 'Clients' & age_band == '65+') %>%
+  left_join(., numb_reablement, by = 'date') %>%
+  select(date, IC_clients_over65 = value, over65_receiving_reablement = numb_reablement)
+
+write_csv(output_figure5, 'Outputs/figure5.csv')
+
+# Figure 6: Episodes by age band and support reason
+
+output_figure6 <- t23_final %>%
+  filter(metric != 'Total' & metric_type == 'value' & date == max_date & age_band != 'All ages') %>%
+  select(6, 3, 1, 5) %>%
+  pivot_wider(names_from = age_band, values_from = value)
+
+write_csv(output_figure6, 'Outputs/figure6.csv')
+
+# Figure 7: What happened next
+output_figure7 <- t21_final %>% 
+  filter(date == max_date & metric_type == 'value' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
+  select(7,4, episodes = 6)
+
+write_csv(output_figure7, 'Outputs/figure7.csv')
