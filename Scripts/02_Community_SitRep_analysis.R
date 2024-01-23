@@ -126,12 +126,12 @@ import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_
 
 import_sheets_function <- function(file_name, table, level){
   
-  if (table == 'Table 4' & file_name != 'october2023.xlsx'){
+  if (table == 'Table 4' & file_name %in% c('june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx')){
     raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home, new reablement support', 'P1 - Other, new reablement support',
                       'P1 - Hospice at Home, new care or support need', 'P2 - Hospice (24hr support)', 'P2 - Community Rehab Setting (24hr support)', 'P2 - Care Home (24hr support)', 'P2 - Other non-home (24hr support)',
                       'P3 - Care Home (new admission, likely permanent)', 'P3b - Care Home (existing resident discharged back)')
  
-     } else if(table == 'Table 5' & file_name != 'october2023.xlsx'){
+     } else if(table == 'Table 5' & file_name %in% c('june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx')){
     raw_colnames <- c('Awaiting a medical decision/ intervention including writing the discharge summary', 'Awaiting a therapy decision/ intervention to proceed with discharge, including writing onward referrals, equipment ordering',
                       'Awaiting community equipment and adaptations to housing', 'Awaiting confirmation from community Transfer of Care Hub or receiving service that referral received and actioned', 'Awaiting Diagnostic test',
                       'Awaiting medicines to take home', 'Awaiting outcome of decision for CHC funding', 'Awaiting referral to community Transfer of Care Hub or receiving service', 'Awaiting transfer back to an acute trust', 'Awaiting transport',
@@ -153,10 +153,25 @@ import_sheets_function <- function(file_name, table, level){
                       'Pathway 3: awaiting availability of a bed in a residential or nursing home for end-of-life care.', 'Awaiting equipment and adaptations to housing', 'Individual/family not in agreement with discharge plans', 
                       'Homeless/no right of recourse to public funds/no place to discharge to/lack of housing offers when previous residence no longer suitable', 'Safeguarding concern preventing discharge or Court of Protection', 'Awaiting readmission to an acute trust', 'No Plan', 
                       'Awaiting Diagnostic test', 'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Awaiting outcome of decision for CHC funding')
-  }
+    
+     } else if (table == 'Table 4' & !(file_name %in% c('june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx', 'october2023.xlsx'))){
+       raw_colnames <- c('P0 - Domestic home, no new support need', 'P0 - Other, no new support need', 'P1 - Domestic home or setting to continute with rehabilitation, reablement, and recovery',
+                         'P1 - Domestic home or setting with a new care package to manage ongoing, long term care needs', 'P1 - Hotel or other temporary accomodation to continue rehabilitation, reablement and recovery', 'P1 - Hotel or other temporary accomodation with a new care package to manage ongoing, long term care needs',
+                         'P1 - Hospice at home to continue with rehabilitation, reablement and recovery and end-of-life care', 'P1 - Hospice at home for End-of-Life care',
+                        'P2 - Hospice for end-of-life care', 'P2 - Another pathway 2 bed to continue with rehabilitation, reablement and recovery', 'P2 - homeless hostel or extra care facility to continue with rehabilitation, reablement and recovery',
+                         'P3 - Care Home (new admission, likely permanent)', 'P3 - Discharge from rehabilitation, reablement and recovery services as a new admission to a care home for end-of-life care', 'P3b - Care Home (existing resident discharged back)')
+       
+     } else if(table == 'Table 5' & ! (file_name %in% c('june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx', 'october2023.xlsx'))){
+       raw_colnames <- c('Awaiting a medical decision/intervention including writing the discharge summary', 'Awaiting a therapy decision/intervention to proceed with discharge, including writing onward referrals, equipment ordering', 'Awaiting referral to care transfer hub or receiving service', 'Awaiting medicines to take home', 'Awaiting transport', 'Awaiting confirmation from care transfer hub or receiving service that referral received and actioned.', 
+                         'Pathway 1: awaiting availability of resource for assessment and start of care at home (not a continuation of rehabilitation, recovery and reablement)',
+                         'Pathway 1: Awaiting availability of resource for continuation of rehabilitation, reablement and recovery at home', 'Pathway 2: awaiting availability of another rehabilitation, reablement and recovery bed in a community bedded setting', 'Pathway 3: awaiting availability of a bed in a residential or nursing home that is likely to be a permanent placement', 
+                         'Pathway 3: awaiting availability of a bed in a residential or nursing home for end-of-life care.', 'Awaiting equipment and adaptations to housing', 'Individual/family not in agreement with discharge plans', 
+                         'Homeless/no right of recourse to public funds/no place to discharge to/lack of housing offers when previous residence no longer suitable', 'Safeguarding concern preventing discharge or Court of Protection', 'Awaiting readmission to an acute trust', 'No Plan', 
+                         'Awaiting Diagnostic test', 'Remains in non-specialist Community bed to avoid spread of infectious disease and because there is no other suitable location to discharge to', 'Awaiting outcome of decision for CHC funding')
+     }
   
   
-  if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx', 'october2023.xlsx') & level %in% c('ICB', 'Trust')){
+  if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx', 'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx') & level %in% c('ICB', 'Trust')){
     
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 15, na = '-', col_names = FALSE)
     
@@ -168,7 +183,7 @@ import_sheets_function <- function(file_name, table, level){
     
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 13, na = '-', col_names = FALSE)
     
-  } else if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx', 'october2023.xlsx') & level == 'Region'){
+  } else if (table == 'Table 4' & file_name %in% c('july2023.xlsx', 'august2023.xlsx', 'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx') & level == 'Region'){
     
     discharges_all <- read_excel(paste0('Raw_data/Community_SitRep_data/', file_name), sheet = table, skip = 5, na = '-', n_max = 8, col_names = FALSE)
     
