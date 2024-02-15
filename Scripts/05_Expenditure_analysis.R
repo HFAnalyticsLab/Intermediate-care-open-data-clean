@@ -150,11 +150,7 @@ if (file.exists('Raw_data/NCC_data/NCC_2021-22.xlsx')){print('2021/22 NCC data a
 
 # Download deflator
 
-if (file.exists('Raw_data/GDP_deflator.xlsx')){print('GDP deflator already loaded')
-} else{
-  download.file('https://assets.publishing.service.gov.uk/media/651ad0456a423b000df4c6e2/GDP_Deflators_Qtrly_National_Accounts_September_2023_update.xlsx', 'Raw_data/GDP_deflator.xlsx')
-}
-
+download.file('https://assets.publishing.service.gov.uk/media/659c102bc23a1000128d0cb8/GDP_Deflators_Qtrly_National_Accounts_December_2023_update.xlsx', 'Raw_data/GDP_deflator.xlsx')
 
 ##########################################################################
 ################# WRANGLE DATA INTO AMENABLE FORMAT ######################
@@ -299,7 +295,7 @@ england_ascfr_expenditure$real_expenditure[england_ascfr_expenditure$date == '20
 
 england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2022-03-31']-1
 england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2021-03-31']-1
-
+england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2023-03-31']/england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date == '2020-03-31']-1
 
 t32_final %>%
   filter(metric == 'Expenditure per 100,000 adults' & region_name == 'England') %>%
@@ -371,5 +367,16 @@ ggplot()+
   xlab('Date') +
   ylab('Expenditure') +
   theme(legend.text = element_text(size = 11))
+
+
+## TABLE OUTPUTS
+
+# Figure 6: Real unit costs
+
+output_figure6 <- england_ascfr_expenditure %>%
+  select(date, real_spend_per_episode) %>%
+  drop_na()
+
+write_csv(output_figure6, 'Outputs/figure6_unitcosts.csv')
  
 
