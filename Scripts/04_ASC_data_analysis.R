@@ -655,7 +655,7 @@ t24_final %>%
     geom_col(fill = '#F8766D') +
     theme_minimal() +
     ylab('Episodes per 1000 people over 65') +
-    xlab('Local Authorities') +
+     xlab('Local Authorities') +
      theme(axis.text.x=element_blank())
   
   , tooltip = 'text'
@@ -883,9 +883,15 @@ write_csv(output_figure5, 'Outputs/figure5.csv')
 output_figure6 <- t23_final %>%
   filter(metric != 'Total' & metric_type == 'value' & date == max_date & age_band != 'All ages') %>%
   select(6, 3, 1, 5) %>%
+  mutate(agg_supportreason = case_when(grepl('Physical Support', metric) == TRUE ~ 'Physical Support',
+                                       grepl('Social Support', metric) == TRUE ~ 'Social Support',
+                                       grepl('Sensory Support', metric) == TRUE ~ 'Sensory Support',
+                                       TRUE ~ metric)) %>%
+  group_by(agg_supportreason, age_band) %>%
+  summarise(value = sum(value)) %>%
   pivot_wider(names_from = age_band, values_from = value)
 
-write_csv(output_figure6, 'Outputs/figure6.csv')
+write_csv(output_figure6, 'Outputs/figure6_aggregated.csv')
 
 # Figure 7: What happened next
 output_figure7 <- t21_final %>% 
@@ -893,3 +899,29 @@ output_figure7 <- t21_final %>%
   select(7,4, episodes = 6)
 
 write_csv(output_figure7, 'Outputs/figure7.csv')
+
+
+# BCF data
+
+eps_per_over65 <- t28_final %>%
+  filter(region_name != 'England' & metric == 'Completed episodes of ST-Max' & !is.na(LA_code) & date == max_date & age_band == '65+') %>% 
+  full_join(., LA_populations, by = 'LA_code') %>%
+  select(LA_code, LA_name = LA_name.x,  episodes_over65 = value.x, over_65_pop, population = value.y) %>%
+  mutate(per_cap =  episodes_over65/as.numeric(over_65_pop)*1000)
+
+
+BCF_url <- 'https://www.england.nhs.uk/wp-content/uploads/2023/12/Better-Care-Fund-end-of-year-data-collection-2022-to-2023.xlsx'
+download.file(BCF_url, destfile = 'Raw_data/BCF.xlsx')
+
+BCF_spend <- read_excel('Raw_data/BCF.xlsx', sheet = 'Planned Expenditure 2', skip = 26) %>%
+  select(Code, LA_name = `Health and Wellbeing Board`, `Bed based intermediate Care Services`, `Reablement in a persons own home`) %>%
+  left_join(., LA_populations, by='LA_name') %>%
+  mutate(reablement_BCF_percapita = `Reablement in a persons own home`/value) %>%
+  mutate(reablement_BCF_per65s = `Reablement in a persons own home`/over_65_pop) %>%
+  left_join(., eps_per_over65, by='LA_name')
+
+write_csv(BCF_spend, 'Outputs/BCF.csv')
+
+
+ggplot(data = BCF_spend, aes(x = reablement_BCF_per65s, y = per_cap)) +
+  geom_point()
