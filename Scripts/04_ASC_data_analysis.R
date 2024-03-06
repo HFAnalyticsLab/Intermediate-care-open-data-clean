@@ -79,6 +79,14 @@ rm(all_ASCOF_data)
 
 ## OUTPUT TABLES
 
+max_date <- max(t21_final$date)
+
+# Total number of clients per month
+
+t28_final %>%
+  filter(region_name == 'England' & metric == 'Clients' & age_band == 'Total' & date == max_date) %>%
+  mutate(monthly = value/12)
+
 # Figure 1: Episodes by age band and support reason
 
 output_figure1 <- t23_final %>%
@@ -90,14 +98,28 @@ output_figure1 <- t23_final %>%
                                        TRUE ~ metric)) %>%
   group_by(agg_supportreason, age_band) %>%
   summarise(value = sum(value)) %>%
-  pivot_wider(names_from = age_band, values_from = value)
+  pivot_wider(names_from = age_band, values_from = value) %>%
+  mutate(all_ages = `18 to 64` + `65 and over`)
 
 write_csv(output_figure6, 'Outputs/figure1.csv')
 
+fig1_pc <- t23_final %>%
+  filter(metric != 'Total' & metric_type == 'percentage' & date == max_date)  %>%
+  mutate(agg_supportreason = case_when(grepl('Physical Support', metric) == TRUE ~ 'Physical Support',
+                                       grepl('Social Support', metric) == TRUE ~ 'Social Support',
+                                       grepl('Sensory Support', metric) == TRUE ~ 'Sensory Support',
+                                       TRUE ~ metric)) %>%
+  group_by(agg_supportreason, age_band) %>%
+  summarise(value = sum(value)) %>%
+  pivot_wider(names_from = age_band, values_from = value)
+  
 
 # Figure 3: What happened next
-output_figure7 <- t21_final %>% 
+output_figure3 <- t21_final %>% 
   filter(date == max_date & metric_type == 'value' & region_name == 'England' & age_band == 'All ages' & metric != 'Total') %>%
   select(7,4, episodes = 6)
 
-write_csv(output_figure7, 'Outputs/figure3.csv')
+fig3_pc <-t21_final %>% 
+  filter(date == max_date & metric_type == 'percentage' & region_name == 'England' & age_band == 'All ages' & metric != 'Total')
+
+write_csv(output_figure3, 'Outputs/figure3.csv')

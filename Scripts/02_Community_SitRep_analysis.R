@@ -315,17 +315,6 @@ ICB_delayed_discharges_by_reason <- all_months_combined[[4]]
 rm(table4_region, table4_ICB, table5_region, table5_ICB, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
 
 
-
-## Load in time series [CURRENTLY HASHED OUT AS WE HAVENT USED THEM AT ALL]
-
-#daily_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
-
-#weekly_timeseries <- read_excel('Raw_data/Community_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
-
-#weekly_timeseries$`Date (week commencing)` <- str_replace(weekly_timeseries$`Date (week commencing)`, '\\**', "")
-
-#weekly_timeseries$`Date (week commencing)` <- str_replace(weekly_timeseries$`Date (week commencing)`, '\\*', "")
-
 #################################################
 ################### ANALYSIS ####################
 #################################################
@@ -378,8 +367,7 @@ avg_delayed_by_pathway = region_delayed_discharges_by_reason %>%
   group_by(metric) %>%
   mutate(pc = mean/tot*100) 
 
-avg_delayed_by_pathway %>% ungroup() %>% summarise(tot=sum(mean))
+avg_delayed_by_pathway %>% ungroup() %>% summarise(tot=sum(mean))  # I'm getting 2151 here vs 2700 in comments - needs checking
 
 avg_delayed_by_pathway %>% filter(metric=='Pathway 1' | metric=='Pathway 2' | metric=='Pathway 3')
-
 
