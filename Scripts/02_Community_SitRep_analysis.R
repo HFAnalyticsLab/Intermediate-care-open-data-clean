@@ -330,274 +330,6 @@ rm(table4_region, table4_ICB, table5_region, table5_ICB, all_tables_list, all_ta
 ################### ANALYSIS ####################
 #################################################
 
-## Total number of patients discharged on P1
-region_discharges_by_destination %>%
-  filter(pathway == 'P1' & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_discharges_by_destination %>%
-  filter(pathway == 'P1' & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-ICB_discharges_by_destination %>%
-  replace_na(list(value = 0)) %>%
-  filter(pathway == 'P1') %>%
-  select(-period) %>%
-  group_by(date, Org_code, Org_name) %>%
-  summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
-
-
-## Total number of patients discharged on P2
-
-region_discharges_by_destination %>%
-  filter(pathway == 'P2' & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-
-region_discharges_by_destination %>%
-  filter(pathway == 'P2' & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-ICB_discharges_by_destination %>%
-  replace_na(list(value = 0)) %>%
-  filter(pathway == 'P2') %>%
-  select(-period) %>%
-  group_by(date, Org_code, Org_name) %>%
-  summarise(value = sum(value)) %>%
-  pivot_wider(names_from = date, values_from = c(value))
-
-
-# P1 discharges by destination 
-
-region_discharges_by_destination %>%
-  filter(pathway == 'P1' & Region == 'ENGLAND') %>%
-  group_by(period, date, metric) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = metric)) +
-  geom_line() +
-  theme_minimal()
-
-# P2 discharges by destination 
-
-region_discharges_by_destination %>%
-  filter(pathway == 'P2' & Region == 'ENGLAND') %>%
-  group_by(period, date, metric) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = metric)) +
-  geom_line() +
-  theme_minimal()
-
-
-## Percentage of discharges on P1 
-region_discharges_by_destination %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P1' & Region == 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_discharges_by_destination %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P1' & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-ICB_discharges_by_destination %>%
-  replace_na(list(value = 0)) %>%
-  group_by(period, date, Org_code, Org_name) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P1') %>%
-  group_by(period, date, Org_code, Org_name) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges)
-
-
-## Percentage of discharges on P2 
-region_discharges_by_destination %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P2' & Region == 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_discharges_by_destination %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P2' & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-## NOTE: FIX DATE THING HERE, MAYBE DO GROUPING INSTEAD. FIGURE OUT MAP THING.
-ICB_discharges_by_destination %>%
-  replace_na(list(value = 0)) %>%
-  group_by(period, date, Org_code, Org_name) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(pathway == 'P2') %>%
-  group_by(period, date, Org_code, Org_name) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  filter(date == max(ymd(Date))) %>%
-  ggplot(., aes(x = percent_of_discharges)) +
-  geom_histogram() +
-  theme_minimal()
-
-
-
-###TABLE 5 
-
-# Number of delayed discharges awaiting availability of care on pathway 1
-
-region_delayed_discharges_by_reason %>%
-  filter(grepl('Pathway 1', metric) & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_delayed_discharges_by_reason %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(grepl('Pathway 1', metric) & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-
-# Number of delayed discharges awaiting availability of care on pathway 2
-
-region_delayed_discharges_by_reason %>%
-  filter(grepl('Pathway 2', metric) & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_delayed_discharges_by_reason %>%
-  filter(grepl('Pathway 2', metric) & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-# Proportion of delayed discharges awaiting availability of care on pathway 1
-
-region_delayed_discharges_by_reason %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(grepl('Pathway 1', metric) & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_delayed_discharges_by_reason %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(grepl('Pathway 1', metric) & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>% 
-  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-
-# Proportion of delayed discharges awaiting availability of care on pathway 2
-
-region_delayed_discharges_by_reason %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(grepl('Pathway 2', metric) & Region == 'ENGLAND') %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>%
-  ggplot(., aes(x = date, y = percent_of_discharges)) +
-  geom_line(color = '#F8766D') +
-  theme_minimal()
-
-region_delayed_discharges_by_reason %>%
-  group_by(period, date, Region) %>%
-  mutate(all_discharges = sum(value)) %>%
-  dplyr::ungroup() %>%
-  filter(grepl('Pathway 2', metric) & Region != 'ENGLAND') %>%
-  group_by(period, date, Region) %>%
-  summarise(value = sum(value), all_discharges = sum(all_discharges)) %>%
-  mutate(percent_of_discharges = value/all_discharges) %>% 
-  ggplot(., aes(x = date, y = percent_of_discharges, color = Region)) +
-  geom_line() +
-  theme_minimal()
-
-
-################################################
-############# VISUALISATIONS ###################
-################################################
-
-ggplot(daily_timeseries, aes(x = Date, y = `P1 - Domestic home, new reablement support`)) +
-  geom_line() +
-  theme_minimal()
-
-ICB_discharges_by_destination %>%
-  filter(pathway == 'P1') %>%
-  replace_na(list(value = 0)) %>%
-  group_by(period, date) %>%
-  summarise(value = sum(value)) %>%
-  ggplot(., aes(x = date, y = value)) +
-  geom_line() +
-  theme_minimal()
-
-
-
 
 ##########################################################
 
@@ -605,9 +337,9 @@ ICB_discharges_by_destination %>%
 ### ANALYSIS FOR LONG READ
 
 
-#1. Average monthly number of patients discharged  - total and by pathway - for latest 12 months
-avg_disch_by_pathway = ICB_discharges_by_destination %>%
-  filter(date >= (max(date) - months(12))) %>%
+#1. Average monthly number of patients discharged  - total and by pathway - for 2023
+avg_disch_by_pathway = region_discharges_by_destination %>%
+  filter(year(date)==2023 & Org_name=='ENGLAND') %>%
   group_by(period, pathway) %>%
   summarise(value = sum(value, na.rm=TRUE)) %>%
   group_by(pathway) %>%
@@ -619,109 +351,24 @@ avg_disch_by_pathway = ICB_discharges_by_destination %>%
 
 avg_disch_by_pathway %>% ungroup() %>% summarise(tot=sum(mean))
 
-avg_disch_by_pathway %>%
-  ggplot(., aes(x=pathway, y=mean, fill=pathway)) +
-  geom_bar(stat='identity') +
-  theme_minimal() +
-  labs(title='Discharges by pathway', y='Average monthly discharges, Sep 22 to Aug 23')
-
-
-#2. Stratified by destination
-avg_disch_by_pathway_and_destination = ICB_discharges_by_destination %>%
-  filter(date >= (max(date) - months(12))) %>%
-  group_by(period, metric, pathway) %>%
-  summarise(value = sum(value, na.rm=TRUE)) %>%
-  group_by( pathway, metric)  %>%
-  summarise(mean = mean(value, na.rm=TRUE))
-
-avg_disch_by_pathway_and_destination %>%
-  filter((pathway=='P1' | pathway=='P2') & mean!=0) %>%
-  mutate(destination = case_when(str_detect(metric, 'Domestic home') ~ 'Home',
-                                 str_detect(metric, 'Hotel') ~ 'Hotel',
-                                 str_detect(metric, 'Other') ~ 'Other',
-                                 str_detect(metric, 'Care Home') ~ 'Care home',
-                                 str_detect(metric, 'Community Rehab') ~ 'Community rehab',
-                                 str_detect(metric, 'Designated Setting') ~ 'Isolation befor care home')) %>%
-  ggplot(., aes(x=destination, y=mean, fill=pathway)) +
-  geom_bar(stat='identity') +
-  theme_minimal() +
-  labs(title='Discharges by destination', y='Average monthly discharges, Sep 22 to Aug 23')
+View(avg_disch_by_pathway)
 
 
 
-#3. Number of P1 and P2 discharges by month 
-ICB_discharges_by_destination %>%
-  filter(pathway=='P2' | pathway=='P1') %>%
-  group_by(period, date, pathway) %>%
-  summarise(value = sum(value, na.rm=TRUE), .groups='keep') %>%
-  ggplot(., aes(x = date, y = value, color=pathway, group=pathway)) +
-  geom_line() +
-  theme_minimal() +
-  xlab('Month and year') +
-  ylab('Number of discharges')
-
-#4. Percentage of dicharges that are on P1 and P2 by ICB (latest month) - could also do n per pop
-ICB_discharges_by_destination %>%
-  filter(date==max(date)) %>%
-  mutate(Org_name = str_remove_all(Org_name, 'NHS'),
-         Org_name = str_remove_all(Org_name, 'INTEGRATED CARE BOARD')) %>%
-  group_by(Org_name) %>%
-  mutate(tot=sum(value, na.rm=TRUE)) %>%
-  filter(pathway=='P1') %>%
-  group_by(pathway, Org_name) %>%
-  summarise(pc = sum(value, na.rm=TRUE)/tot*100) %>%
-  distinct() %>%
-  ggplot(., aes(y = reorder(Org_name, pc), x = pc)) + 
-  geom_bar(stat = 'identity', fill='lightblue') +
-  theme_minimal() +
-  xlab('Percentage of discharges that were to pathway 1, Aug 23') +
-  ylab('ICB')
-
-#4. Percentage of dicharges that are on P1 and P2 by ICB (latest month) - could also do n per pop
-ICB_discharges_by_destination %>%
-  filter(date==max(date)) %>%
-  mutate(Org_name = str_remove_all(Org_name, 'NHS'),
-         Org_name = str_remove_all(Org_name, 'INTEGRATED CARE BOARD')) %>%
-  group_by(Org_name) %>%
-  mutate(tot=sum(value, na.rm=TRUE)) %>%
-  filter(pathway=='P2') %>%
-  group_by(pathway, Org_name) %>%
-  summarise(pc = sum(value, na.rm=TRUE)/tot*100) %>% 
-  distinct() %>%
-  ggplot(., aes(y = reorder(Org_name, pc), x = pc)) + 
-  geom_bar(stat = 'identity', fill='lightblue') +
-  theme_minimal() +
-  xlab('Percentage of discharges that were to pathway 2, Aug 23') +
-  ylab('ICB')
 
 
-# Stacked
-ICB_discharges_by_destination %>%
-  filter(date==max(date)) %>%
-  mutate(Org_name = str_remove_all(Org_name, 'NHS'),
-         Org_name = str_remove_all(Org_name, 'INTEGRATED CARE BOARD')) %>%
-  group_by(Org_name) %>%
-  mutate(tot=sum(value, na.rm=TRUE)) %>%
-  filter(pathway=='P1' | pathway== 'P2') %>%
-  group_by(pathway, Org_name) %>%
-  summarise(pc = sum(value, na.rm=TRUE)/tot*100) %>% 
-  distinct() %>%
-  ggplot(., aes(y = reorder(Org_name, pc), x = pc, fill = pathway)) + 
-  geom_bar(stat = 'identity') +
-  theme_minimal() +
-  xlab('Percentage of discharges that were to pathway 1 or 2, Aug 23') +
-  ylab('ICB')
-
-
-
-#5. Average monthly number of delayed discharges for latest 12 months
+#5. Average monthly number of delayed discharges for 2023
 
 head(ICB_delayed_discharges_by_reason)
 
 ICB_delayed_discharges_by_reason %>% select(metric) %>% distinct()
 
-avg_delayed_by_pathway = ICB_delayed_discharges_by_reason %>%
-  filter(date >= (max(date) - months(12))) %>%
+avg_delayed_by_pathway = region_delayed_discharges_by_reason %>%
+  filter(year(date)==2023 & Org_name=='ENGLAND') %>%
+  mutate(metric=case_when(str_detect(metric, 'Pathway 1') ~ 'Pathway 1',
+                          str_detect(metric, 'Pathway 2') ~ 'Pathway 2',
+                          str_detect(metric, 'Pathway 3') ~ 'Pathway 3',
+                          TRUE ~ metric)) %>%
   group_by(period, metric) %>%
   summarise(value = sum(value, na.rm=TRUE)) %>%
   group_by(metric) %>%
@@ -733,37 +380,6 @@ avg_delayed_by_pathway = ICB_delayed_discharges_by_reason %>%
 
 avg_delayed_by_pathway %>% ungroup() %>% summarise(tot=sum(mean))
 
-avg_delayed_by_pathway %>%
-  filter(str_detect(metric, 'Pathway 1') | str_detect(metric, 'Pathway 2')) %>%
-  ggplot(., aes(x=metric, y=mean, fill=metric)) +
-  geom_bar(stat='identity') +
-  theme_minimal() +
-  labs(title='Average delayed discharges by pathway, Sep 22 to Aug 23', y='', x='') +
-  theme(legend.position = "bottom", legend.direction ='vertical', axis.text.x = element_blank())
-
-
-#6. Percentage of all discharges that are delayed
-
-avg_delayed_by_pathway %>%
-  mutate(metric = case_when(str_detect(metric, 'Pathway') ~ metric,
-                            TRUE ~ 'Other (15 categories, all <5%)')) %>%
-  ggplot(., aes(x=metric, y=pc, fill=metric)) +
-  geom_bar(stat='identity') +
-  theme_minimal() +
-  labs(title='Average delayed discharges by reason, Sep 22 to Aug 23', y='', x='') +
-  theme(legend.position = "bottom", legend.direction ='vertical', axis.text.x = element_blank())
-
-#7. Number of delayed discharges that are due to IC by month
-ICB_delayed_discharges_by_reason %>%
-  filter(str_detect(metric, 'Pathway 1') | str_detect(metric, 'Pathway 2')) %>%
-  group_by(date, metric) %>%
-  summarise(value = sum(value, na.rm=TRUE), .groups='keep') %>%
-  ggplot(., aes(x = date, y = value, color=metric, group=metric)) +
-  geom_line() +
-  theme_minimal() +
-  xlab('Month and year') +
-  ylab('Number of delayed discharges') +
-  theme(legend.position = "bottom", legend.direction ='vertical')
-
+avg_delayed_by_pathway %>% filter(metric=='Pathway 1' | metric=='Pathway 2' | metric=='Pathway 3')
 
 
