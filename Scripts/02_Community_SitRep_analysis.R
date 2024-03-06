@@ -11,7 +11,6 @@
 # As it currently stand, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
 # attentive to potential formatting differences which may complicate the wrangling stages.
 
-# WARNING: dates are currently loading in in a strange format from the weekly timeseries, will need fixing
 
 ################################################################################
 ################################################################################
@@ -114,6 +113,9 @@ print(refreshed_current_files)
 
 import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_series.xlsx'] # Remove time series from list to process with the below function
 
+import_list <- import_list[!import_list == 'january2024.xlsx']
+
+print(import_list)
 
 # Create function that reads in all sheets of each table in an amenable format, namely:
 # Table 4: Month total number of patients discharged by their intended discharge destination
@@ -276,7 +278,7 @@ for (i in 1:length(all_tables_list)){
 
 all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
   
-  lapply(1:length(months), function(x){
+  lapply(1:(length(months)-1), function(x){
     df<- all_tables_list[[i]][[x]] %>%
       mutate(period = month_labels[[x]]) %>%
       pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
