@@ -153,10 +153,10 @@ import_sheets_function <- function(file_name, table, level){
     
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 15, na = '-', col_names = FALSE)
     
-  } else if(level == 'Region' & table == 'Table 4' & !(file_name %in% c('september2023.xlsx', 'october2023.xlsx'))){
+  } else if(level == 'Region' & table == 'Table 4' & !(file_name %in% c('september2023.xlsx', 'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx'))){
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 6, na = '-', n_max = 8, col_names = FALSE)
     
-  } else if ((level == 'Region' & table == 'Table 5') | (table == 'Table 4' & file_name %in% c('september2023.xlsx', 'october2023.xlsx') & level == 'Region')){
+  } else if ((level == 'Region' & table == 'Table 5') | (table == 'Table 4' & file_name %in% c('september2023.xlsx', 'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx') & level == 'Region')){
     discharges_all <- read_excel(paste0('Raw_data/Acute_SitRep_data/', file_name), sheet = table, skip = 5, na = '-', n_max = 8, col_names = FALSE)
     
   } else {print('Error')}
@@ -283,16 +283,6 @@ trust_delayed_discharges_by_reason <- all_months_combined[[6]]
 rm(table4_region, table4_ICB, table4_trust, table5_region, table5_ICB, table5_trust, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
 
 
-## Load in time series [CURRENTLY HASHED OUT AS WE HAVENT USED THEM AT ALL]
-
-#daily_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Daily Series', skip = 5) 
-
-#weekly_timeseries <- read_excel('Raw_data/Acute_SitRep_data/latest_time_series.xlsx', sheet = 'Weekly Series', skip = 6)
-
-
-
-
-
 #################################################
 ################### ANALYSIS ####################
 #################################################
@@ -309,6 +299,18 @@ avg_disch_by_pathway = ICB_discharges_by_destination %>%
   summarise(value = sum(value, na.rm=TRUE)) %>%
   group_by(pathway) %>%
   summarise(mean = mean(value, na.rm=TRUE)) %>%
+  ungroup() %>%
+  mutate(tot = sum(mean)) %>%
+  group_by(pathway) %>%
+  mutate(pc = mean/tot*100)
+
+# QA: Cross-checking with regional tables. Results slightly differ.
+region_avg_disch_by_pathway = region_discharges_by_destination %>%
+  filter(year(date)==2023 & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, pathway) %>%
+  summarise(value = sum(value, na.rm=TRUE)) %>%
+  group_by(pathway) %>%
+  summarise(mean = mean(value, na.rm=TRUE), no_months = n_distinct(period)) %>%   # Ensuring that all 12 months are being included
   ungroup() %>%
   mutate(tot = sum(mean)) %>%
   group_by(pathway) %>%
@@ -333,6 +335,19 @@ avg_delayed_by_pathway = ICB_delayed_discharges_by_reason %>%
   mutate(pc = mean/tot*100) 
 
 
+# QA: Cross-check with regional tables
+region_avg_delayed_by_pathway = region_delayed_discharges_by_reason %>%
+  filter(year(date)==2023  & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(period, metric) %>%
+  summarise(value = sum(value, na.rm=TRUE)) %>%
+  group_by(metric) %>%
+  summarise(mean = mean(value, na.rm=TRUE), no_months = n_distinct(period)) %>%
+  ungroup() %>%
+  mutate(tot = sum(mean)) %>%
+  group_by(metric) %>%
+  mutate(pc = mean/tot*100) 
+
+
 #6. Percentage of all discharges that are delayed
 
 avg_delayed_by_pathway %>%
@@ -341,8 +356,23 @@ avg_delayed_by_pathway %>%
   ggplot(., aes(x=metric, y=pc, fill=metric)) +
   geom_bar(stat='identity') +
   theme_minimal() +
-  labs(title='Average delayed discharges by reason, Sep 22 to Aug 23', y='', x='') +
+  labs(title='Average delayed discharges by reason, 2023', y='', x='') +
   theme(legend.position = "bottom", legend.direction ='vertical', axis.text.x = element_blank())
+
+
+# QA with regional tables 
+
+region_avg_delayed_by_pathway %>%
+  mutate(metric = case_when(str_detect(metric, 'Pathway') ~ metric,
+                            TRUE ~ 'Other (15 categories, all <5%)')) %>%
+  ggplot(., aes(x=metric, y=pc, fill=metric)) +
+  geom_bar(stat='identity') +
+  theme_minimal() +
+  labs(title='Average delayed discharges by reason, 2023', y='', x='') +
+  theme(legend.position = "bottom", legend.direction ='vertical', axis.text.x = element_blank())
+
+
+
 
 #7. Number of delayed discharges that are due to IC by month
 ICB_delayed_discharges_by_reason %>%
@@ -356,5 +386,16 @@ ICB_delayed_discharges_by_reason %>%
   ylab('Number of delayed discharges') +
   theme(legend.position = "bottom", legend.direction ='vertical')
 
+
+region_delayed_discharges_by_reason %>%
+  filter((str_detect(metric, 'Pathway 1') | str_detect(metric, 'Pathway 2')) & Region == 'ENGLAND (Type 1 Trusts)') %>%
+  group_by(date, metric) %>%
+  summarise(value = sum(value, na.rm=TRUE), .groups='keep') %>%
+  ggplot(., aes(x = date, y = value, color=metric, group=metric)) +
+  geom_line() +
+  theme_minimal() +
+  xlab('Month and year') +
+  ylab('Number of delayed discharges') +
+  theme(legend.position = "bottom", legend.direction ='vertical')
 
 
