@@ -350,14 +350,14 @@ View(avg_disch_by_pathway)
 
 head(ICB_delayed_discharges_by_reason)
 
-ICB_delayed_discharges_by_reason %>% select(metric) %>% distinct()
+region_delayed_discharges_by_reason %>% filter(year(date)==2023 & Org_name=='ENGLAND' ) %>% select(period) %>% distinct()
 
 avg_delayed_by_pathway = region_delayed_discharges_by_reason %>%
   filter(year(date)==2023 & Org_name=='ENGLAND') %>%
   mutate(metric=case_when(str_detect(metric, 'Pathway 1') ~ 'Pathway 1',
                           str_detect(metric, 'Pathway 2') ~ 'Pathway 2',
                           str_detect(metric, 'Pathway 3') ~ 'Pathway 3',
-                          TRUE ~ metric)) %>%
+                          TRUE ~ 'other')) %>%
   group_by(period, metric) %>%
   summarise(value = sum(value, na.rm=TRUE)) %>%
   group_by(metric) %>%
@@ -371,3 +371,7 @@ avg_delayed_by_pathway %>% ungroup() %>% summarise(tot=sum(mean))  # I'm getting
 
 avg_delayed_by_pathway %>% filter(metric=='Pathway 1' | metric=='Pathway 2' | metric=='Pathway 3')
 
+region_delayed_discharges_by_reason %>% ungroup() %>%
+  filter(year(date)==2023 & Org_name=='ENGLAND') %>% 
+  summarise(avg = sum(value, na.rm=TRUE)/7) # gives 1737 - checked and this is correct
+  
