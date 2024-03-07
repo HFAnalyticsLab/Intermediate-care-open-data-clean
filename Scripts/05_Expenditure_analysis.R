@@ -11,7 +11,7 @@
 rm(list=ls()) # Clear up workspace
 
 # Check if project setup has been run, and run it if not
-if ('rvest' %in% .packages() & dir.exists(file.path(here('Raw_data/NCC_data')))) { 
+if ('rvest' %in% .packages() & dir.exists(file.path(('Raw_data/')))) { 
   print('Project setup run')
 }else{
   source('Scripts/00_Setup_and_packages.R')}
