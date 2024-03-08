@@ -116,6 +116,13 @@ region_avg_disch_by_pathway = region_discharges_by_destination %>%
   mutate(pc = mean/tot*100)
 
 
+region_discharges_by_destination %>% ungroup() %>%
+  filter(year(date)==2023 & Region == 'ENGLAND (Type 1 Trusts)') %>% 
+  summarise(avg = sum(value, na.rm=TRUE)/12) 
+
+
+
+
 #5. Average monthly number of delayed discharges for latest 12 months
 
 head(ICB_delayed_discharges_by_reason)
@@ -137,14 +144,16 @@ avg_delayed_by_pathway = ICB_delayed_discharges_by_reason %>%
 # QA: Cross-check with regional tables
 region_avg_delayed_by_pathway = region_delayed_discharges_by_reason %>%
   filter(year(date)==2023  & Region == 'ENGLAND (Type 1 Trusts)') %>%
-  group_by(period, metric) %>%
-  summarise(value = sum(value, na.rm=TRUE)) %>%
   group_by(metric) %>%
   summarise(mean = mean(value, na.rm=TRUE), no_months = n_distinct(period)) %>%
   ungroup() %>%
   mutate(tot = sum(mean)) %>%
   group_by(metric) %>%
   mutate(pc = mean/tot*100) 
+
+region_delayed_discharges_by_reason %>% ungroup() %>%
+  filter(year(date)==2023 & Region == 'ENGLAND (Type 1 Trusts)') %>% 
+  summarise(avg = sum(value, na.rm=TRUE)/12) # gives 8,733 
 
 
 #6. Percentage of all discharges that are delayed
