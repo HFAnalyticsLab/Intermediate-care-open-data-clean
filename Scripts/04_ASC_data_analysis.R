@@ -101,7 +101,7 @@ output_figure1 <- t23_final %>%
   pivot_wider(names_from = age_band, values_from = value) %>%
   mutate(all_ages = `18 to 64` + `65 and over`)
 
-write_csv(output_figure6, 'Outputs/figure1.csv')
+write_csv(output_figure1, 'Outputs/figure1.csv')
 
 fig1_pc <- t23_final %>%
   filter(metric != 'Total' & metric_type == 'percentage' & date == max_date)  %>%
