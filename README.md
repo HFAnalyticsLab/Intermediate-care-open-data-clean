@@ -15,7 +15,7 @@ For our first Networked Data Lab output on intermediate care, we analysed data f
 
 ## How does it work?
 
-This repository includes three separate folders: Scripts, Outputs, and Technical Appendix. The first 3 scripts (00, 00b and 00c), load all necessary packages, create a local folder structure, and define functions which download and wrangle the required data from their online sources. These do not need to be run independently - when any of the analytical scripts (01-05) are run, these scripts are loaded and run as necessary. 
+This repository includes three separate folders: Scripts, Outputs, and Technical Appendix. The first 3 scripts (00, 00b and 00c), load all necessary packages, create a local folder structure, and define functions for downloading and wrangling the required data from their online sources. These do not need to be run independently - when any of the analytical scripts (01-05) are run, these scripts and functions are loaded and run as necessary. 
 
 **Scripts**
 
@@ -34,7 +34,7 @@ This repository includes three separate folders: Scripts, Outputs, and Technical
 
 **Technical appendix**
 
-* **`1. Technical appendix.Rmd`** Technical appendix for central analysis carried out by NDL partners. This markdown results in an HTML file being created inside this folder.
+* **`1. Technical appendix.Rmd`**
 
 
 ### Requirements
