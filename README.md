@@ -1,3 +1,5 @@
+![plot](https://github.com/HFAnalyticsLab/Intermediate-care-open-data-clean/blob/main/ndlbanner.png)
+
 # Analysis of open data on intermediate care
 
 #### Project Status: In progress
