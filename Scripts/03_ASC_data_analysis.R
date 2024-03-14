@@ -2,14 +2,10 @@
 ################################################################################
 # Script written in R 4.0.2
 
-#  4. ADULT SOCIAL CARE FINANCIAL RETURNS AND OUTCOMES FRAMEWORK DATA ANALYSIS
+#  3. ADULT SOCIAL CARE FINANCIAL RETURNS AND OUTCOMES FRAMEWORK DATA ANALYSIS
 
-# This script downloads all relevant editions of the Adult Social Care Financial Returns (ASC-FR) dataset, 
+# This script downloads and wrangles all relevant editions of the Adult Social Care Financial Returns (ASC-FR) dataset, 
 # and a time series of the Adult Social Care Outcomes Framework dataset.
-
-# These datasets are also available as csvs which are more easily machine-readable than the xlsx reference tables,
-# but even with the data dictionaries their interpretation is quite opaque - as such, since we're only interested in 
-# a few quite specific measures, for now it seems more worth wrangling the excel sheets into an R readable format.
 
 ################################################################################
 ################################################################################

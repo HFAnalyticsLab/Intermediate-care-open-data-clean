@@ -1,6 +1,6 @@
 ## Install and load packages
 
-packages <- c('tidyverse', 'readxl', 'rvest', 'here', 'lubridate', 'data.table', 'plotly', 'sf', 'scales')
+packages <- c('tidyverse', 'readxl', 'rvest', 'here')
 
 installed_packages <- packages %in% row.names(installed.packages())
 

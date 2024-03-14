@@ -2,8 +2,10 @@
 ################################################################################
 # Script written in R 4.0.2
 
-#  5. EXPENDITURE ANALYSIS: ASC-FRs and GDP deflator
+#  4. EXPENDITURE ANALYSIS: ASC-FRs and GDP deflator
 
+# This script downloads and wrangles all relevant editions of the Adult Social Care Financial Returns publication and the latest GDP deflator (December 2023 edition at time of publication),
+# then combines data from these sources to derive real unit costs (2022-23 prices) of local authority-provided reablement over time. 
 
 ################################################################################
 ################################################################################
@@ -101,7 +103,7 @@ england_ascfr_expenditure$real_spend_per_episode[england_ascfr_expenditure$date 
 
 ## TABLE OUTPUTS
 
-# Figure 6: Real unit costs
+# Figure 5: Real unit costs
 
 output_figure5 <- england_ascfr_expenditure %>%
   select(date, real_spend_per_episode) %>%

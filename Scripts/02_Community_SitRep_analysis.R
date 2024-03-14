@@ -5,10 +5,9 @@
 #  2. COMMUNITY SITREP DATA ANALYSIS
 
 # In this script, we download any new editions of the discharges from community hospitals SitRep data from NHS England, process the data into an analyzable format, and create time series of key metrics.
-# To run this script, you only need to have run 00_Setup_and_packages.R prior
 
-# Much of this script functions in the same way as the preceding 01_Acute_Sitrep_analysis.R script, with minor variations to account for formatiing differences. 
-# As it currently stand, this script works to scrape, download and wrangle sitrep data up until August 2023. For future data, please be 
+# Much of this script functions in the same way as the preceding 01_Acute_Sitrep_analysis.R script, with minor variations to account for formatting differences. 
+# As it currently stands, this script works to scrape, download and wrangle sitrep data up until December 2023. If adapting for future data, please be 
 # attentive to potential formatting differences which may complicate the wrangling stages.
 
 
@@ -61,7 +60,7 @@ region_delayed_discharges_by_reason <- all_months_combined[[3]]
 
 ICB_delayed_discharges_by_reason <- all_months_combined[[4]]
 
-rm(table4_region, table4_ICB, table5_region, table5_ICB, all_tables_list, all_tables_pivoted, all_months_combined)  # Clear up workspace
+rm(all_months_combined)  # Clear up workspace
 
 
 #################################################

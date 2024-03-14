@@ -17,8 +17,11 @@ acute_sitrep_wrangle <- function(x = NULL){
   
   print(refreshed_current_files)
   
-  import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_series.xlsx'] # Remove time series from list to process with the below function
+  import_list <- refreshed_current_files[refreshed_current_files %in% c('january2023.xlsx', 'february2023.xlsx', 'march2023.xlsx', 'april2023.xlsx', 'may2023.xlsx', 'june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx', 
+                                                                      'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx')] # Select only 2023 months
   
+  
+  print(import_list)
   
   # Create function that reads in all sheets of each table in an amenable format, namely:
   # Table 4: Month total number of patients discharged by their intended discharge destination
@@ -132,7 +135,7 @@ acute_sitrep_wrangle <- function(x = NULL){
   
   all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
     
-    lapply(1:length(months), function(x){
+    lapply(1:length(month_labels), function(x){
       df<- all_tables_list[[i]][[x]] %>%
         mutate(period = month_labels[[x]]) %>%
         pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
@@ -157,9 +160,9 @@ community_sitrep_wrangle <- function(x = NULL){
   
   print(refreshed_current_files)
   
-  import_list <- refreshed_current_files[!refreshed_current_files == 'latest_time_series.xlsx'] # Remove time series from list to process with the below function
+  import_list <- import_list <- refreshed_current_files[refreshed_current_files %in% c('june2023.xlsx', 'july2023.xlsx', 'august2023.xlsx', 'september2023.xlsx', 
+                                                                                       'october2023.xlsx', 'november2023.xlsx', 'december2023.xlsx')] # Select only 2023 months
   
-  import_list <- import_list[!import_list == 'january2024.xlsx']
   
   print(import_list)
   
@@ -324,7 +327,7 @@ community_sitrep_wrangle <- function(x = NULL){
   
   all_tables_pivoted <- lapply(1:length(all_tables_list),function(i){
     
-    lapply(1:(length(month_labels)-1), function(x){
+    lapply(1:(length(month_labels)), function(x){
       df<- all_tables_list[[i]][[x]] %>%
         mutate(period = month_labels[[x]]) %>%
         pivot_longer(4:length(all_tables_list[[i]][[x]]), names_to = 'metric', values_to = 'value',
