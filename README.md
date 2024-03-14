@@ -2,8 +2,6 @@
 
 # Analysis of open data on intermediate care
 
-#### Project Status: In progress
-
 ## Project Description
 
 For our first Networked Data Lab output on intermediate care, we analysed openly available data on discharges from acute and community hospitals, local authority-provided reablement, and urgent commmunity response services. All datasets detailed below cover England only. 
@@ -34,6 +32,7 @@ The first 3 scripts (00, 00b and 00c), load all necessary packages, create a loc
 
 
 **Outputs**
+
 The outputs folder contains a series of csv files containing the data used to construct the 5 figures in the long read. These csv files are produced by the analysis scripts detailed above.  
 
 **Technical appendix**
