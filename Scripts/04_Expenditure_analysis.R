@@ -109,6 +109,6 @@ output_figure5 <- england_ascfr_expenditure %>%
   select(date, real_spend_per_episode) %>%
   drop_na()
 
-write_csv(output_figure5, 'Outputs/figure5_unitcosts.csv')
+write_csv(output_figure5, 'Outputs/figure5.csv')
  
 
