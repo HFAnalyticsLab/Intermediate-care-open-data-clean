@@ -151,3 +151,18 @@ region_delayed_discharges_by_reason %>%
   theme(legend.position = "bottom", legend.direction ='vertical')
 
 
+### Output for figure 4
+weekly_delayed <- avg_delayed_by_pathway %>%
+  filter(str_detect(metric, 'Pathway 1')|str_detect(metric, 'Pathway 2')) %>%
+  mutate(pathway = case_when(str_detect(metric, 'Pathway 1') ~ 'P1',
+                             str_detect(metric, 'Pathway 2') ~ 'P2'))
+
+output_figure4 <- avg_disch_by_pathway %>%
+filter(pathway %in% c('P1', 'P2')) %>%
+  left_join(., weekly_delayed, by = 'pathway') %>%
+  mutate(weekly_discharges = mean.x/4) %>%
+  select(pathway, metric, weekly_discharges, weekly_delayed = mean.y) %>%
+  mutate(pc_delayed = weekly_delayed/(weekly_discharges+weekly_delayed)*100) 
+
+write_csv(output_figure4, 'Outputs/figure4.csv')  
+
