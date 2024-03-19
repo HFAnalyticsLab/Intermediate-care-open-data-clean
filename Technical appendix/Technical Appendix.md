@@ -24,7 +24,8 @@ For crisis response intermediate care, we used the number of referrals into urge
 
 The numbers we used to estimate the scale of intermediate care are shown in Table 1.
 
-Table 1: Our estimation of the scale of intermediate care using the percentage of each type of intermediate care that is step-up from the NHS benchmarking report (orange), acute discharge data (blue) and Urgent Community Response statistics (grey). 
+**Table 1: Our estimation of the scale of intermediate care using the percentage of each type of intermediate care that is step-up from the NHS benchmarking report (orange), acute discharge data (blue) and Urgent Community Response statistics (grey).**
+
 ![plot](https://github.com/HFAnalyticsLab/Intermediate-care-open-data-clean/blob/main/Technical%20appendix/Technical%20appendix%20-%20table%201.png)
 
 *This was calculated from a combined total of 27,000 for home-based or reablement
