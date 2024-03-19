@@ -22,6 +22,17 @@ To estimate the scale of intermediate care, we used the discharge data as a star
 
 For crisis response intermediate care, we used the number of referrals into urgent community response services. We assumed there was only one referral per patient each month. 
 
+The numbers we used to estimate the scale of intermediate care are shown in Table 1.
+
+Table 1: Our estimation of the scale of intermediate care using the percentage of each type of intermediate care that is step-up from the NHS benchmarking report (orange), acute discharge data (blue) and Urgent Community Response statistics (grey). 
+
+|   |Percentage that is step-up| Step-up | Step-down | Total |
+----|--------------------------|---------|-----------|-------|
+| Home-based | 73.6% | 37,636 | 13,500 | 51,136 |
+| Bed-based | 12.3% | 1,403 | 10,000 | 11,403 |
+| Reablement |  18.2% |  3,004 | 13,500 | 16,504 |
+| Crisis reponse |  81.1% | 36,495 | 8,505 | 45,000 |
+
 #### Pathways out of intermediate care
 We used the community discharge data to calculate the average number of discharges from bed-based intermediate care and the percentage of people discharged to each pathway.
 
