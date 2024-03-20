@@ -4,7 +4,7 @@
 
 ## Project Description
 
-For our first Networked Data Lab output on intermediate care [The challenges and potential of intermediate care](https://www.health.org.uk/publications/long-reads/the-challenges-and-potential-of-intermediate-care), we analysed openly available data on discharges from acute and community hospitals, local authority-provided reablement, and urgent commmunity response services. All datasets detailed below cover England only. 
+For our [first Networked Data Lab output on intermediate care](https://www.health.org.uk/publications/long-reads/the-challenges-and-potential-of-intermediate-care), we analysed openly available data on discharges from acute and community hospitals, local authority-provided reablement, and urgent commmunity response services. All datasets detailed below cover England only. 
 
 ## Data sources
 * [Adult Social Care Activity and Finance Report, NHS Digital](https://digital.nhs.uk/data-and-information/publications/statistical/adult-social-care-activity-and-finance-report)
