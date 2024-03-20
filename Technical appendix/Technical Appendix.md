@@ -18,17 +18,17 @@ We used the acute discharge data to describe the average number of people discha
 
 We calculated the number of people starting local authority-funded intermediate care each month by dividing the figure for 2022/23 by 12 (using adult social care data).
 
-To estimate the scale of intermediate care, we used the discharge data as a starting point for the number of patients discharged to step-down reablement or home-based intermediate care and bed-based intermediate care. We used the percentage of each type of step-up intermediate care from the Intermediate Care Benchmarking Report 2022/23 to estimate the number of patients starting intermediate care in total and step-up care specifically. We assumed the total discharges to step-down reablement or home-based intermediate care were split equally between the two types. 
+To estimate the scale of intermediate care, we used the discharge data as a starting point for the number of patients discharged to 1) step-down reablement or home-based intermediate care and 2) bed-based intermediate care. We used the percentage of each type of step-up intermediate care from the Intermediate Care Benchmarking Report 2022/23to estimate the number of patients starting intermediate care in total and step-up care specifically. We assumed the total discharges to step-down reablement or home-based intermediate care were split equally between the two types.  
 
-For crisis response intermediate care, we used the number of referrals into urgent community response services. We assumed there was only one referral per patient each month. 
+For crisis response intermediate care, we used the number of referrals into urgent community response services. We assumed there was only one referral per patient each month.  
 
 The numbers we used to estimate the scale of intermediate care are shown in Table 1.
 
-**Table 1: Our estimation of the scale of intermediate care using the percentage of each type of intermediate care that is step-up from the NHS benchmarking report (orange), acute discharge data (blue) and Urgent Community Response statistics (grey).**
+**Table 1: Our estimation of the scale of intermediate care using the percentage of each type of intermediate care that is step up from the NHS benchmarking report (orange), acute discharge data (blue) and Urgent Community Response statistics (grey).**
 
 ![plot](https://github.com/HFAnalyticsLab/Intermediate-care-open-data-clean/blob/main/Technical%20appendix/Technical%20appendix%20-%20table%201.png)
 
-*This was calculated from a combined total of 27,000 for home-based or reablement
+*This was calculated from a combined total of 27,000 for home based or reablement
 
 #### Pathways out of intermediate care
 We used the community discharge data to calculate the average number of discharges from bed-based intermediate care and the percentage of people discharged to each pathway.
