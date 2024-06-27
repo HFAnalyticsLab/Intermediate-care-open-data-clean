@@ -105,7 +105,10 @@ print(import_list)
 # Create function that reads in all sheets of each table in an amenable format, namely:
 # Table 4: Month total number of patients discharged by their intended discharge destination
 # Table 5: Weekly snapshot average of dischargeable people per day (LoS >14 days) not discharged, by reason
-# We need to separate data into ICB and trust-level, which awkwardly are published on the same sheets of the Excel files
+# We need to separate data into total, region, ICB and trust-level, which awkwardly are published on the same sheets of the Excel files
+# BUT in this sheet, we're only interested in Leeds and a few other trusts, so just isolating trust-level
+
+
 
 import_sheets_function <- function(file_name, table, level){
   
