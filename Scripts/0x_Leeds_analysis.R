@@ -151,8 +151,6 @@ import_sheets_function <- function(file_name, table, level){
 }
 
 
-discharges_test <- read_excel(paste0('Raw_data/Acute_SitRep_data/april2024.xlsx'), sheet = 'Table 5', skip = 15, na = '-', col_names = FALSE)
-
 # Import all available months for both relevant tables at ICB and trust level
 
 table4_trust <- lapply(1:length(import_list), function(i){import_sheets_function(file_name = import_list[i], table = 'Table 4', level = 'Trust')})
